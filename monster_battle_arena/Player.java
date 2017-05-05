@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Player {
     
     private String name;
-    private int gold;
+    private int gold = Integer.MAX_VALUE;
     private ArrayList <Monster> personalCardDeck = new ArrayList <Monster>();
 
     public String getName()

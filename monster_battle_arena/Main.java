@@ -5,24 +5,14 @@ import java.net.URISyntaxException;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 /*
  * @author Coleman Rogers
  */
 public class Main extends Application {
-        
+            
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
         launch(args);
@@ -46,7 +36,7 @@ public class Main extends Application {
         GenerateGraphics gameGraphics = new GenerateGraphics();
 
         // Create main menu scene to display when the game starts
-        Scene mainMenu = gameGraphics.createMainMenu();
+        Scene mainMenu = gameGraphics.createMainMenu(primaryStage);
                 
         primaryStage.setTitle("Monster Battle Arena");
         primaryStage.setScene(mainMenu);

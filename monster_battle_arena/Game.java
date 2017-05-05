@@ -7,8 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- *
+/*
  * @author Coleman Rogers
  */
 public class Game {
