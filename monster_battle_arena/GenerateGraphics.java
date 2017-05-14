@@ -35,6 +35,7 @@ public class GenerateGraphics {
     {
         // Makes a new button with specified text and CSS styling
         Button button = new Button(text);
+        
         // Example of custom button background: -fx-background-image: url('/ImageAssets/mainBtnBg.png')
         button.setStyle("-fx-text-fill: " + textColor + ";" + "-fx-background-color: " + bgColor + ";");
         button.setFont(Font.font("Endor", FontWeight.BOLD, fontSize));
@@ -147,6 +148,10 @@ public class GenerateGraphics {
             root.getChildren().remove(vertBox);
             Image shop_bg = new Image("/ImageAssets/shop_bg.png");
             ImageView imageView = new ImageView(shop_bg);
+            imageView.setOnMouseClicked(ev -> {
+                root.getChildren().remove(imageView);
+                root.getChildren().addAll(video, vertBox);
+            });
             root.getChildren().remove(video);
             root.getChildren().add(imageView);
         });
@@ -173,19 +178,10 @@ public class GenerateGraphics {
         });
         startBtn.setBackground(Background.EMPTY);
 
-        /* Button array is made to hold all main menu buttons in a single
-           variable so that they can all be more quickly passed to the 
-           prepSubMenu() method */
-    //  Button[] mainMenuButtons = {playBtn, editorBtn, shopBtn, settingsBtn};
-        
-        /* Prepare different scenes to be displayed on the mainStage when the
-           action listeners for buttons within the mainMenuButton array are fired */
-    //  prepSubMenus(mainMenu, mainStage, root, 0);
-
         // Add all of the nodes to the vertical box and then add to the root group
         vertBox.getChildren().addAll(mainTitle, startBtn);
         root.getChildren().addAll(audio, video);
-        root.getChildren().add(vertBox);
+        root.getChildren().addAll(vertBox);
         
         vidPlayer.play();
         audioPlayer.play();
@@ -193,27 +189,7 @@ public class GenerateGraphics {
         return mainMenu;
     }
     
-    /* Method to prepare action listeners to display different sub-menus  
-       that are passed in as an array of buttons with a groupID to differentiate
-       between the different groups */
-    private void prepSubMenus(Scene scene, Stage mainStage, Group root, int buttonGroupID)
-    {
-        switch (buttonGroupID)
-        {
-            case 0:
-                
-                break;
-                
-            case 1:
-                break;
-                
-            default:
-                System.out.println("[ERROR] buttonGroupID is invalid!");
-                break;
-        }
-        
-        System.out.println("[INFO] Sub-scenes loaded for groupID: " + buttonGroupID + " successfully");
-    }
+    
 
     
     

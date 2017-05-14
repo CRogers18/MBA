@@ -12,6 +12,8 @@ import javafx.stage.Stage;
  * @author Coleman Rogers
  */
 public class Main extends Application {
+    
+    private String version = "0.01";
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -38,7 +40,7 @@ public class Main extends Application {
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu(primaryStage);
                 
-        primaryStage.setTitle("Monster Battle Arena");
+        primaryStage.setTitle("Monster Battle Arena v" + version);
         primaryStage.setScene(mainMenu);
         primaryStage.setOnCloseRequest(e -> {
         //  e.consume();      <--- will be used to add confirm dialog on close
