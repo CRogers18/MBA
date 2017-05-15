@@ -15,9 +15,10 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private String version = "0.01";
+    private String version = "0.05";
     Game game = new Game();
     Player player = new Player();
+    Monster[] monsterList;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -30,7 +31,7 @@ public class Main extends Application {
         game.initGame(player);
         
         // Capturing monster list data for no real reason tbh...
-        Monster[] monsters = game.getMonsterList();
+        monsterList = game.getMonsterList();
         
         /* RAM Usage task, to be used later
         new Timer().schedule(new TimerTask() {
@@ -53,7 +54,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws URISyntaxException
     {
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList);
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu(primaryStage);

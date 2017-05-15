@@ -34,10 +34,13 @@ public class GenerateGraphics {
     // Class for quickly generating graphical interface elements
     private Group mainMenuGroup;
     private Player player;
+    private Monster[] monsterList;
+    private int cardPacksOpened = 0;
     
-    public GenerateGraphics(Player player)
+    public GenerateGraphics(Player player, Monster[] monsters)
     {
         this.player = player;
+        this.monsterList = monsters;
     }
     
     public Button makeButton(String text, String textColor, String bgColor, int fontSize, double minWidth)
@@ -268,20 +271,50 @@ public class GenerateGraphics {
         priceBox2.setAlignment(Pos.CENTER);
         priceBox2.relocate(990, 710);
         
+        // Standard card pack opening
         scpImage.setOnMouseClicked(e -> {
             int currentGemCount = player.getGold();
-            player.setGold(currentGemCount-100);
             
-            String newGemCount = Integer.toString(player.getGold());
-            playerGemCount.setText(newGemCount);   
+            if (currentGemCount >= 100)
+            {
+                player.setGold(currentGemCount-100);
+
+                String newGemCount = Integer.toString(player.getGold());
+                playerGemCount.setText(newGemCount);
+
+                RanNumGen openPack = new RanNumGen();
+                openPack.packOpening(player, false, monsterList);
+
+                cardPacksOpened += 1;
+                System.out.println("Standard Opened. Card packs opened so far: " + cardPacksOpened);
+            }
+            
+            else
+                System.out.println("Insufficient funds to purchase pack!");
+            
         });
         
+        // Ultra card pack opening
         ucpImage.setOnMouseClicked(e -> {
             int currentGemCount = player.getGold();
-            player.setGold(currentGemCount-400);
             
-            String newGemCount = Integer.toString(player.getGold());
-            playerGemCount.setText(newGemCount);
+            if (currentGemCount >= 400)
+            {
+                player.setGold(currentGemCount-400);
+
+                String newGemCount = Integer.toString(player.getGold());
+                playerGemCount.setText(newGemCount);
+
+                RanNumGen openPack = new RanNumGen();
+                openPack.packOpening(player, true, monsterList);
+
+                cardPacksOpened += 1;
+                System.out.println("Ultra Opened. Card packs opened so far: " + cardPacksOpened);
+            }
+            
+            else
+                System.out.println("Insufficient funds to purchase pack!");
+            
         });
         
         shopBox.getChildren().addAll(scpImage, ucpImage);
@@ -289,9 +322,5 @@ public class GenerateGraphics {
         shopBox.relocate(690, 400);
         root.getChildren().addAll(backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
     }
-    
-    
 
-    
-    
 }
