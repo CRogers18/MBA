@@ -13,11 +13,13 @@ import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -30,6 +32,13 @@ import javafx.util.Duration;
 public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
+    private Group mainMenuGroup;
+    private Player player;
+    
+    public GenerateGraphics(Player player)
+    {
+        this.player = player;
+    }
     
     public Button makeButton(String text, String textColor, String bgColor, int fontSize, double minWidth)
     {
@@ -86,7 +95,6 @@ public class GenerateGraphics {
         String audioPath = getClass().getResource("/AudioAssets/mainMenu_Winters Tale.mp3").toURI().toString();
         
         Group root = new Group();
-    //  BorderPane window = new BorderPane();
 
         Scene mainMenu = new Scene(root, 1920, 1080);
         
@@ -95,7 +103,6 @@ public class GenerateGraphics {
         VBox vertBox = new VBox(40);
         vertBox.setAlignment(Pos.CENTER);
         vertBox.setPrefWidth(300);
-    //  window.setCenter(box);
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
         vertBox.setPadding(new Insets(200, 540, 100, 600));
@@ -154,6 +161,7 @@ public class GenerateGraphics {
             });
             root.getChildren().remove(video);
             root.getChildren().add(imageView);
+            createShopMenu(root);
         });
         
         settingsBtn.setOnMouseEntered(e -> settingsBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
@@ -179,14 +187,107 @@ public class GenerateGraphics {
         startBtn.setBackground(Background.EMPTY);
 
         // Add all of the nodes to the vertical box and then add to the root group
-        vertBox.getChildren().addAll(mainTitle, startBtn);
+        vertBox.getChildren().add(mainTitle);
         root.getChildren().addAll(audio, video);
-        root.getChildren().addAll(vertBox);
+        root.getChildren().add(vertBox);
+        
+        // Private variable holds a copy of the main menu group for quick reloading
+        mainMenuGroup = root;
+        vertBox.getChildren().add(startBtn);
         
         vidPlayer.play();
         audioPlayer.play();
         
         return mainMenu;
+    }
+    
+    private void createShopMenu(Group root)
+    {
+        /* NOTE: Assets created by this class are NOT being removed on main
+                 menu reload. This inefficiency will need to be addressed. */
+
+        HBox shopBox = new HBox(100);
+        Image standard_card_pack = new Image("/ImageAssets/standard_card_pack.png", 220, 300, false, false);
+        Image ultra_card_pack = new Image("/ImageAssets/ultra_card_pack.png", 220, 300, false, false);
+                
+        ImageView scpImage = new ImageView(standard_card_pack);
+        ImageView ucpImage = new ImageView(ultra_card_pack);
+        
+        scpImage.setOnMouseEntered(e -> scpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
+        scpImage.setOnMouseExited(e -> scpImage.setEffect(null));
+        
+        ucpImage.setOnMouseEntered(e -> ucpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
+        ucpImage.setOnMouseExited(e -> ucpImage.setEffect(null));
+        
+        Rectangle backdrop = new Rectangle();
+        backdrop.relocate(600, 300);
+        backdrop.setWidth(700);
+        backdrop.setHeight(500);
+        backdrop.setOpacity(0.60);
+        
+        Rectangle playerGems = new Rectangle();
+        playerGems.relocate(30, 30);
+        playerGems.setWidth(230);
+        playerGems.setHeight(75);
+        playerGems.setOpacity(0.60);
+        
+        // Box for player gem count
+        HBox playerGemBox = new HBox(10);
+        playerGemBox.relocate(50, 50);
+        Image gemIcon = new Image("/ImageAssets/gem_currency.png", 40, 40, false, false);
+        ImageView gemView1 = new ImageView(gemIcon);
+        String gemCount = Integer.toString(player.getGold());
+        Text playerGemCount = new Text(gemCount);
+        playerGemCount.setFill(Color.WHITE);
+        playerGemCount.setFont(Font.font("Serif", FontWeight.BOLD, 30));
+        playerGemBox.getChildren().addAll(playerGemCount, gemView1);
+        
+        // Price box 1 for standard card pack
+        HBox priceBox1 = new HBox(10);
+        priceBox1.setPadding(new Insets(0, 0, 0, 85));
+        ImageView gemView2 = new ImageView(gemIcon);
+        ImageView gemView3 = new ImageView(gemIcon);
+
+        Text s_Price = new Text("100");
+        s_Price.setFill(Color.WHITE);
+        s_Price.setFont(Font.font("Serif", FontWeight.BOLD, 30));
+
+        priceBox1.getChildren().addAll(s_Price, gemView2);
+        priceBox1.setAlignment(Pos.CENTER);
+        priceBox1.relocate(680, 710);
+        
+        // Price Box 2 for ultra card pack
+        HBox priceBox2 = new HBox(10);
+        priceBox2.setPadding(new Insets(0, 0, 0, 85));
+        
+        Text u_Price = new Text("400");
+        u_Price.setFill(Color.WHITE);
+        u_Price.setFont(Font.font("Serif", FontWeight.BOLD, 30));
+        
+        priceBox2.getChildren().addAll(u_Price, gemView3);
+        priceBox2.setAlignment(Pos.CENTER);
+        priceBox2.relocate(990, 710);
+        
+        scpImage.setOnMouseClicked(e -> {
+            int currentGemCount = player.getGold();
+            player.setGold(currentGemCount-100);
+            
+            String newGemCount = Integer.toString(player.getGold());
+            playerGemCount.setText(newGemCount);   
+        });
+        
+        ucpImage.setOnMouseClicked(e -> {
+            int currentGemCount = player.getGold();
+            player.setGold(currentGemCount-400);
+            
+            String newGemCount = Integer.toString(player.getGold());
+            playerGemCount.setText(newGemCount);
+        });
+        
+        shopBox.getChildren().addAll(scpImage, ucpImage);
+        shopBox.setAlignment(Pos.CENTER);
+        shopBox.relocate(690, 400);
+        root.getChildren().addAll(backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
     }
     
     

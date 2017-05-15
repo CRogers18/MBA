@@ -1,12 +1,40 @@
-Ragnarok 20 5 7 0 5
-Thor 15 10 5 0 4
-Zeus 10 10 5 0 3
-Apollo 12 8 5 0 4
-Posideon 14 8 5 0 5
-Goblin 8 4 2 1 2
-GoblinTech 7 2 3 1 1
-Paladin 20 9 9 0 6
-Knight 15 9 8 1 5
-HeroicKnight 20 12 12 0 7
-HighGround 100 20 10 1 8
-InstaHoe 5 100 1 1 1
+Thor 15 10 5 0 4 5
+Zeus 10 10 5 0 3 5
+Apollo 12 8 5 0 4 5
+Posideon 14 8 5 0 5 5
+GoblinTech 7 2 3 1 1 1
+GoblinWarrior 8 4 2 1 2 2
+GoblinRaider -1 -1 -1 -1 -1 3
+GoblinChief -1 -1 -1 -1 -1 4
+Squire -1 -1 -1 -1 -1 1
+Knight 15 9 8 1 5 2
+Paladin 20 12 12 0 6 3
+Praetorian -1 -1 -1 -1 -1 4
+Slinger -1 -1 -1 -1 -1 1
+Archer -1 -1 -1 -1 -1 2
+Marksman -1 -1 -1 -1 -1 3
+Sniper -1 -1 -1 -1 -1 4
+ApprenticeMage -1 -1 -1 -1 -1 1
+Wizard -1 -1 -1 -1 -1 2
+Mage -1 -1 -1 -1 -1 3
+ArchMage -1 -1 -1 -1 -1 4
+InfernalGoddess -1 -1 -1 -1 -1 3
+Griffon -1 -1 -1 -1 -1 3
+Phoenix -1 -1 -1 -1 -1 3
+Centaur -1 -1 -1 -1 -1 3
+Dragon -1 -1 -1 -1 -1 3
+ChaosDragon -1 -1 -1 -1 -1 4
+EscapedConvict -1 -1 -1 -1 -1 1
+Mercenary -1 -1 -1 -1 -1 2
+Assassin -1 -1 -1 -1 -1 3
+KingSlayer -1 -1 -1 -1 -1 4
+StallStealer -1 -1 -1 -1 -1 1
+Bandit -1 -1 -1 -1 -1 2
+Kleptomaniac -1 -1 -1 -1 -1 3
+ChiefThief -1 -1 -1 -1 -1 4
+Informant -1 -1 -1 -1 -1 1
+Operative -1 -1 -1 -1 -1 2
+Spy -1 -1 -1 -1 -1 3
+DoubleAgent -1 -1 -1 -1 -1 4
+TheEmperor -1 -1 -1 -1 -1 5
+GovernorMargrave -1 -1 -1 -1 -1 5

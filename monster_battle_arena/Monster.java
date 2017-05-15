@@ -7,10 +7,11 @@ package monster_battle_arena;
 class Monster {
     
     private int monsterID;
-    private int hitpoints, strength, defense, energyRequired;
+    private int hitpoints, strength, defense, energyRequired, rarity;
+
     private boolean willTaunt;
     
-    public Monster initMonster(int monsterID, String monsterName, int hitpoints, int strength, int defense, int energyRequired)
+    public Monster initMonster(int monsterID, String monsterName, int hitpoints, int strength, int defense, int energyRequired, int rarity)
     {
         this.monsterID = monsterID;
         this.monsterName = monsterName;
@@ -18,6 +19,7 @@ class Monster {
         this.strength = strength;
         this.defense = defense;
         this.energyRequired = energyRequired;
+        this.rarity = rarity;
         return this;
     }
     
@@ -81,6 +83,16 @@ class Monster {
     public void setDefense(int defense)
     {
         this.defense = defense;
+    }
+    
+    public int getRarity()
+    {
+        return rarity;
+    }
+
+    public void setRarity(int rarity)
+    {
+        this.rarity = rarity;
     }
     
 }

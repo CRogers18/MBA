@@ -12,12 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class Game {
     
-    private Monster[] monsterList = new Monster[12];
+    private Monster[] monsterList = new Monster[40];
     
-    public void initGame() throws IOException, FileNotFoundException
+    public void initGame(Player player) throws IOException, FileNotFoundException
     {
         // Array will contain monster data extraced from the text file as strings
-        String[] monsterData = new String[12];
+        String[] monsterData = new String[40];
         
         // Input stream retrieves monsterData text file to be read from
         InputStream input = getClass().getResourceAsStream("monsterData.txt");
@@ -39,9 +39,10 @@ public class Game {
             int strength = Integer.parseInt(convertedData[2]);
             int defense = Integer.parseInt(convertedData[3]);
             int energyRequired = Integer.parseInt(convertedData[5]);
+            int rarity = Integer.parseInt(convertedData[6]);
             
             Monster newCard = new Monster();
-            monsterList[i] = newCard.initMonster(i, monsterName, hitpoints, strength, defense, energyRequired);
+            monsterList[i] = newCard.initMonster(i, monsterName, hitpoints, strength, defense, energyRequired, rarity);
         }
         
         System.out.println("[INFO] Monster Data Successfully Loaded");
@@ -51,11 +52,11 @@ public class Game {
                                         + monsterList[i].getHitpoints() + ", Strength: "
                                         + monsterList[i].getStrength() + ", Defense: "
                                         + monsterList[i].getDefense() + ", Energy Required: "
-                                        + monsterList[i].getEnergyRequired());
+                                        + monsterList[i].getEnergyRequired() + ", Rarity: "
+                                        + monsterList[i].getRarity());
         }
         
         System.out.println("[INFO] Generating player data...");
-        Player player = new Player();
         player.setName("Bob");
         
         for (int i = 0; i < 3; i++)
