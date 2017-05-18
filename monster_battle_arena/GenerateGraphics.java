@@ -32,10 +32,12 @@ import javafx.util.Duration;
 public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
+    
     private Group mainMenuGroup;
-    private Player player;
-    private Monster[] monsterList;
+    private final Player player;
+    private final Monster[] monsterList;
     private int cardPacksOpened = 0;
+    private boolean isMoving = false;
     
     public GenerateGraphics(Player player, Monster[] monsters)
     {
@@ -94,6 +96,7 @@ public class GenerateGraphics {
     
     public Scene createMainMenu(Stage mainStage) throws URISyntaxException
     {
+        // Paths to video and audio assets
         String videoPath = getClass().getResource("/VideoAssets/mainMenuBg.mp4").toURI().toString();
         String audioPath = getClass().getResource("/AudioAssets/mainMenu_Winters Tale.mp3").toURI().toString();
         
@@ -110,10 +113,10 @@ public class GenerateGraphics {
         // Insets parameters (padding space in pixels): top, right, bottom, left
         vertBox.setPadding(new Insets(200, 540, 100, 600));
         
-        // Media players for both audio and video
         Media mainMenuBg = new Media(videoPath);
         Media mainMenuAudio = new Media(audioPath);
-
+        
+        // Media players for both audio and video
         MediaPlayer vidPlayer = new MediaPlayer(mainMenuBg);
         MediaPlayer audioPlayer = new MediaPlayer(mainMenuAudio);
         
@@ -143,6 +146,7 @@ public class GenerateGraphics {
         Button settingsBtn = makeButton("Settings", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         Button quitBtn = makeButton("Quit", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         
+        // Sets handler for what to do on mouse enter and exit, also add drop shadow effect
         playBtn.setOnMouseEntered(e -> playBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         playBtn.setOnMouseExited(e -> playBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         playBtn.setEffect(makeDropShadow(Color.AQUA, 40));
@@ -150,6 +154,60 @@ public class GenerateGraphics {
         editorBtn.setOnMouseEntered(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         editorBtn.setOnMouseExited(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         editorBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        
+        // What to do when the deck editor button is pressed
+        editorBtn.setOnAction(e -> {
+            
+            // Remove the box containing main menu elements and load new assets
+            root.getChildren().remove(vertBox);
+            Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
+            
+            // Card graphic is downsized for now, but in future will be correctly sized
+            Image card39 = new Image("/ImageAssets/card39.png", 260, 355, false, false);
+            ImageView imageView = new ImageView(editor_bg);
+            ImageView cardView = new ImageView(card39);
+            cardView.relocate(105, 75);
+            
+            // Set an event handler for mouse clicking on the card
+            cardView.setOnMouseClicked(ev -> {
+                
+                // Invert variable for whether card is moving each time it is clicked
+                isMoving = !isMoving;
+                    
+                    // Event handler for mouse movement
+                    cardView.setOnMouseMoved(eve -> {
+                        
+                        // If the card should be moving, get mouse coords and put the card there
+                        if (isMoving)
+                        {
+                            double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
+                            cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
+                        }
+                    });
+                    
+                    /* Handles rapid mouse movement that can sometimes exit the bounds
+                       of the cardView object before setOnMouseMove event can be fired, 
+                       resulting in the card no longer being moved to the mouse coords */
+                    cardView.setOnMouseExited(even -> {
+                        
+                        if (isMoving)
+                        {
+                            double mouseX = even.getSceneX(), mouseY = even.getSceneY();
+                            cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
+                        }
+                    });
+            });
+            
+            // Lazy implementation of a back button
+            imageView.setOnMouseClicked(ev -> {
+                root.getChildren().removeAll(imageView, cardView);
+                root.getChildren().addAll(video, vertBox);
+            });
+            
+            // Remove the video asset from the main menu and add new assets
+            root.getChildren().remove(video);
+            root.getChildren().addAll(imageView, cardView);
+        });
         
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
@@ -222,12 +280,14 @@ public class GenerateGraphics {
         ucpImage.setOnMouseEntered(e -> ucpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
         ucpImage.setOnMouseExited(e -> ucpImage.setEffect(null));
         
+        // Transparent rectangle for background for card packs
         Rectangle backdrop = new Rectangle();
         backdrop.relocate(600, 300);
         backdrop.setWidth(700);
         backdrop.setHeight(500);
         backdrop.setOpacity(0.60);
         
+        // Transparent recentangle for background for player gem count
         Rectangle playerGems = new Rectangle();
         playerGems.relocate(30, 30);
         playerGems.setWidth(230);
@@ -287,6 +347,9 @@ public class GenerateGraphics {
 
                 cardPacksOpened += 1;
                 System.out.println("Standard Opened. Card packs opened so far: " + cardPacksOpened);
+                
+                for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+                    System.out.println("Card " + i + " is " + player.getPersonalCardDeck().get(i).getMonsterName());
             }
             
             else
@@ -310,9 +373,13 @@ public class GenerateGraphics {
 
                 cardPacksOpened += 1;
                 System.out.println("Ultra Opened. Card packs opened so far: " + cardPacksOpened);
+                
+                for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+                    System.out.println("Card " + i + " is " + player.getPersonalCardDeck().get(i).getMonsterName());
             }
             
             else
+                // Might play an audio clip here in the future
                 System.out.println("Insufficient funds to purchase pack!");
             
         });
