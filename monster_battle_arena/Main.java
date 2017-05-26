@@ -8,6 +8,7 @@ import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /*
@@ -19,6 +20,7 @@ public class Main extends Application {
     Game game = new Game();
     Player player = new Player();
     Monster[] monsterList;
+    Image[] cardImages;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -30,8 +32,8 @@ public class Main extends Application {
         // Make a new instance of the game class and call the initialization method
         game.initGame(player);
         
-        // Capturing monster list data for no real reason tbh...
         monsterList = game.getMonsterList();
+        cardImages = game.loadCardImages();
         
         /* RAM Usage task, to be used later
         new Timer().schedule(new TimerTask() {
@@ -54,7 +56,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws URISyntaxException
     {
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages);
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu(primaryStage);

@@ -35,16 +35,21 @@ public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
     
-    private Group mainMenuGroup;
+    private Group mainMenuGroup, shopGroup, deckEditorGroup;
+    private MediaView audio, video;
+    private VBox vertBox;
+    private Image[] cardImages;
+
     private final Player player;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0;
     private boolean isMoving = false;
     
-    public GenerateGraphics(Player player, Monster[] monsters)
+    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages)
     {
         this.player = player;
         this.monsterList = monsters;
+        this.cardImages = cardImages;
     }
     
     public Button makeButton(String text, String textColor, String bgColor, int fontSize, double minWidth)
@@ -108,7 +113,7 @@ public class GenerateGraphics {
         
         // Create a vertical box to hold menu elements in a single column.
         // makeVerticalBox parameters: spacing between nodes in Y-axis, posX, posY
-        VBox vertBox = new VBox(40);
+        vertBox = new VBox(40);
         vertBox.setAlignment(Pos.CENTER);
         vertBox.setPrefWidth(300);
         
@@ -122,17 +127,18 @@ public class GenerateGraphics {
         MediaPlayer vidPlayer = new MediaPlayer(mainMenuBg);
         MediaPlayer audioPlayer = new MediaPlayer(mainMenuAudio);
         
-        vidPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        /* Source of a very big and bad memory leak right here, set to loop twice
+           until a solution can be determined.  */
+        vidPlayer.setCycleCount(2);
         vidPlayer.setStopTime(Duration.seconds(9));
-        vidPlayer.setOnEndOfMedia(() -> vidPlayer.seek(Duration.seconds(0)));
         
         audioPlayer.setVolume(0.40);
         audioPlayer.setStartTime(Duration.seconds(1));
         audioPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         audioPlayer.setOnEndOfMedia(() -> audioPlayer.seek(Duration.seconds(0)));
         
-        MediaView audio = new MediaView(audioPlayer);
-        MediaView video = new MediaView(vidPlayer);
+        audio = new MediaView(audioPlayer);
+        video = new MediaView(vidPlayer);
 
         // Create text for main game title
         // makeText parameters: text content, text CSS styling, text font size
@@ -159,152 +165,15 @@ public class GenerateGraphics {
         
         // What to do when the deck editor button is pressed
         editorBtn.setOnAction(e -> {
-            
-            // Remove the box containing main menu elements and load new assets
-            root.getChildren().removeAll(vertBox, video);
-            Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
-            
-            /* Deck editor has 8 spots to place cards, so make 8 
-               containers to place the card images in. */
-            ImageView[] deckEditorCardView = new ImageView[8];
-            Image[] deckEditorCardImages = new Image[monsterList.length];
-            ImageView editorBgView = new ImageView(editor_bg);
-            
-            /* Graphic for deck editor needs to be corrected, minor issues with
-               alignment occur when placing cards at equal distance from one another */
-            int imageSpacing = 105, graphicErrorSpacing = 2;
-            
-            // THIS HAS A HEFTY PERFORMANCE PENALTY, NEED TO LOOK INTO OPTIMIZATIONS
-            for (int i = 0; i < 8; i++)
-            {
-                /* TO-DO: Have placeholder graphics for other cards so we can
-                   load these images as "card + i + .png" rather than hardcode 39.
-                   Card graphic is downsized for now, but in future will be correctly sized */
-                try 
-                {
-                    deckEditorCardImages[i] = new Image("/ImageAssets/Cards/card" + i + ".png", 260, 355, false, false);
-                } catch (IllegalArgumentException err)
-                {
-                    deckEditorCardImages[i] = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
-                }
-                
-                // For the first 8 card images, set the ImageView to display the image
-                if (i < 8)
-                {
-                    ColorAdjust darken = new ColorAdjust();
-                    darken.setBrightness(-0.65);
-            
-                    deckEditorCardView[i] = new ImageView(deckEditorCardImages[i]);
-                    deckEditorCardView[i].setEffect(darken);
-                    deckEditorCardView[i].setCache(true);
-                    deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
-  
-                    if (i == 4)
-                        imageSpacing = 105;
-                    
-                    // A lot of stupid code to fix a slightly off graphical background
-                    if (i < 4)
-                    {
-                        deckEditorCardView[i].relocate(imageSpacing, 75);
-                        
-                        if (i == 2)
-                            deckEditorCardView[i].relocate(++imageSpacing, 75);
-                        
-                        if (i == 3)
-                            deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 75);
-                    }
-                    
-                    else if (i >= 4)
-                    {
-                        deckEditorCardView[i].relocate(imageSpacing, 515);
-                        
-                        if (i > 5)
-                            deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 515);
-                    }
-
-                    imageSpacing += 325;
-                }
-            }
-            
-            for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
-            {
-                    int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
-                    System.out.println("Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
-                    
-                    // For the time being limit to first page of deck editor
-                    if (currentID > 7)
-                        continue;
-
-                    deckEditorCardView[currentID].setEffect(null);
-            }
-            
-            
-
-            /* Commented out at the moment since it was just for testing purposes
-            // Set an event handler for mouse clicking on the card
-            cardView.setOnMouseClicked(ev -> {
-                
-                // Invert variable for whether card is moving each time it is clicked
-                isMoving = !isMoving;
-                    
-                    // Event handler for mouse movement
-                    cardView.setOnMouseMoved(eve -> {
-                        
-                        // If the card should be moving, get mouse coords and put the card there
-                        if (isMoving)
-                        {
-                            double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
-                            cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
-                        }
-                    });
-                    
-                    // Handles rapid mouse movement that can sometimes exit the bounds
-                    // of the cardView object before setOnMouseMove event can be fired, 
-                    // resulting in the card no longer being moved to the mouse coords 
-                    cardView.setOnMouseExited(even -> {
-                        
-                        if (isMoving)
-                        {
-                            double mouseX = even.getSceneX(), mouseY = even.getSceneY();
-                            cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
-                        }
-                    });
-            });
-            */
-            
-            Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
-            backBtn.relocate(1540, 950);
-            
-            backBtn.setOnAction(ev -> {
-                root.getChildren().removeAll(editorBgView, backBtn);
-                
-                for (int i = 0; i < deckEditorCardView.length; i++)
-                    root.getChildren().remove(deckEditorCardView[i]);
-                
-                root.getChildren().addAll(video, vertBox);
-            });
-            
-            // Add new assets
-            root.getChildren().addAll(editorBgView, backBtn);
-            
-            for (int i = 0; i < deckEditorCardView.length; i++)
-                    root.getChildren().add(deckEditorCardView[i]);
-            
+            root.getChildren().clear();
+            createDeckEditorMenu(root);   
         });
         
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         shopBtn.setOnAction(e -> {
-            root.getChildren().remove(vertBox);
-            Image shop_bg = new Image("/ImageAssets/shop_bg.png");
-            ImageView imageView = new ImageView(shop_bg);
-            imageView.setOnMouseClicked(ev -> {
-                root.getChildren().remove(imageView);
-                root.getChildren().addAll(video, vertBox);
-            });
-            root.getChildren().remove(video);
-            root.getChildren().add(imageView);
+            root.getChildren().clear();
             createShopMenu(root);
         });
         
@@ -331,16 +200,13 @@ public class GenerateGraphics {
         startBtn.setBackground(Background.EMPTY);
 
         // Add all of the nodes to the vertical box and then add to the root group
-        vertBox.getChildren().add(mainTitle);
-        root.getChildren().addAll(audio, video);
-        root.getChildren().add(vertBox);
-        
-        // Private variable holds a copy of the main menu group for quick reloading
-        mainMenuGroup = root;
-        vertBox.getChildren().add(startBtn);
+        vertBox.getChildren().addAll(mainTitle, startBtn);
+        root.getChildren().addAll(audio, video, vertBox);
         
         vidPlayer.play();
         audioPlayer.play();
+        
+        mainMenuGroup = root;
         
         return mainMenu;
     }
@@ -360,7 +226,7 @@ public class GenerateGraphics {
         scpImage.setOnMouseEntered(e -> scpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
         scpImage.setOnMouseExited(e -> scpImage.setEffect(null));
         
-        ucpImage.setOnMouseEntered(e -> ucpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
+        ucpImage.setOnMouseEntered(e -> ucpImage.setEffect(makeDropShadow(Color.YELLOW, 40)));
         ucpImage.setOnMouseExited(e -> ucpImage.setEffect(null));
         
         // Transparent rectangle for background for card packs
@@ -467,10 +333,178 @@ public class GenerateGraphics {
             
         });
         
+        Image shop_bg = new Image("/ImageAssets/shop_bg.png");
+        ImageView shopView = new ImageView(shop_bg);
+        shopView.setOnMouseClicked(ev -> {
+            root.getChildren().clear();
+        //  root.getChildren().removeAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
+            root.getChildren().addAll(audio, video, vertBox);
+        });
+        
         shopBox.getChildren().addAll(scpImage, ucpImage);
         shopBox.setAlignment(Pos.CENTER);
         shopBox.relocate(690, 400);
-        root.getChildren().addAll(backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
+        root.getChildren().addAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
+        
+        shopGroup = root;
     }
+    
+    private void createDeckEditorMenu(Group root)
+    {
+        Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
+            
+        /* Deck editor has 8 spots to place cards, so make 8 
+           containers to place the card images in. */
+        ImageView[] deckEditorCardView = new ImageView[8];
+        ImageView editorBgView = new ImageView(editor_bg);
+
+        /* Graphic for deck editor needs to be corrected, minor issues with
+           alignment occur when placing cards at equal distance from one another */
+        int imageSpacing = 105, graphicErrorSpacing = 2;
+
+        // THIS HAS A HEFTY PERFORMANCE PENALTY, NEED TO LOOK INTO OPTIMIZATIONS
+        for (int i = 0; i < 8; i++)
+        {
+           
+            // For the first 8 card images, set the ImageView to display the image
+            if (i < 8)
+            {
+                ColorAdjust darken = new ColorAdjust();
+                darken.setBrightness(-0.65);
+
+                deckEditorCardView[i] = new ImageView(cardImages[i]);
+                deckEditorCardView[i].setEffect(darken);
+                deckEditorCardView[i].setCache(true);
+                deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
+
+                if (i == 4)
+                    imageSpacing = 105;
+
+                // A lot of stupid code to fix a slightly off graphical background
+                if (i < 4)
+                {
+                    deckEditorCardView[i].relocate(imageSpacing, 75);
+
+                    if (i == 2)
+                        deckEditorCardView[i].relocate(++imageSpacing, 75);
+
+                    if (i == 3)
+                        deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 75);
+                }
+
+                else if (i >= 4)
+                {
+                    deckEditorCardView[i].relocate(imageSpacing, 515);
+
+                    if (i > 5)
+                        deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 515);
+                }
+
+                imageSpacing += 325;
+            }
+        }
+
+        for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+        {
+                int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
+                System.out.println("Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
+
+                // For the time being limit to first page of deck editor
+                if (currentID > 7)
+                    continue;
+
+                deckEditorCardView[currentID].setEffect(null);
+        }
+        
+        for (int i = 0; i < 8; i++)
+        {
+            final int index = i;
+            
+            if (deckEditorCardView[index].getEffect() == null)
+            {
+                deckEditorCardView[index].setOnMouseEntered(e -> deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60)));
+                deckEditorCardView[index].setOnMouseExited(e -> deckEditorCardView[index].setEffect(null));
+                
+                deckEditorCardView[index].setOnMouseClicked(e -> {
+                    
+                    
+                
+                });
+                
+            }
+        }
+
+        Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
+        backBtn.relocate(1540, 950);
+        
+        backBtn.setOnMouseEntered(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        backBtn.setOnMouseExited(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
+
+        backBtn.setOnAction(ev -> {
+            /*
+            root.getChildren().removeAll(editorBgView, backBtn);
+
+            for (int i = 0; i < deckEditorCardView.length; i++)
+                root.getChildren().remove(deckEditorCardView[i]);
+            */
+            root.getChildren().clear();
+
+            root.getChildren().addAll(audio, video, vertBox);
+        });
+
+        Button pageForward = makeButton("Page 2", "#00ffff", "#0d5cdb", 25, 100);
+        pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
+        pageForward.relocate(900, 920);
+
+        pageForward.setOnAction(ev -> {
+
+            Button pageBack = makeButton("Page 1", "#00ffff", "#0d5cdb", 25, 100);
+            pageBack.relocate(700, 920);
+            pageForward.setText("Page 3");
+            root.getChildren().add(pageBack);
+
+        });
+
+        // Add new assets
+        root.getChildren().addAll(editorBgView, backBtn, pageForward);
+
+        for (int i = 0; i < deckEditorCardView.length; i++)
+                root.getChildren().add(deckEditorCardView[i]);
+        
+        deckEditorGroup = root;
+    }
+    
+    /* Commented out at the moment since it was just for testing purposes
+        // Set an event handler for mouse clicking on the card
+        cardView.setOnMouseClicked(ev -> {
+
+            // Invert variable for whether card is moving each time it is clicked
+            isMoving = !isMoving;
+
+                // Event handler for mouse movement
+                cardView.setOnMouseMoved(eve -> {
+
+                    // If the card should be moving, get mouse coords and put the card there
+                    if (isMoving)
+                    {
+                        double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
+                        cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
+                    }
+                });
+
+                // Handles rapid mouse movement that can sometimes exit the bounds
+                // of the cardView object before setOnMouseMove event can be fired, 
+                // resulting in the card no longer being moved to the mouse coords 
+                cardView.setOnMouseExited(even -> {
+
+                    if (isMoving)
+                    {
+                        double mouseX = even.getSceneX(), mouseY = even.getSceneY();
+                        cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
+                    }
+                });
+        });
+        */
 
 }

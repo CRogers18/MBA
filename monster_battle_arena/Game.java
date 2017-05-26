@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ThreadLocalRandom;
+import javafx.scene.image.Image;
 
 /*
  * @author Coleman Rogers
@@ -58,7 +59,7 @@ public class Game {
         
         System.out.println("[INFO] Generating player data...");
         player.setName("Bob");
-        player.getPersonalCardDeck().add(monsterList[0]);
+        player.getPersonalCardDeck().add(monsterList[7]);
         
         System.out.println("[INFO] Player data successfully created");
     }
@@ -71,6 +72,24 @@ public class Game {
     public void setMonsterList(Monster[] monsterList)
     {
         this.monsterList = monsterList;
+    }
+
+    public Image[] loadCardImages()
+    {
+        Image[] cardImages = new Image[monsterList.length];
+        
+        for (int i = 0; i < 8; i++)
+        {
+            try
+            {
+                cardImages[i] = new Image("/ImageAssets/Cards/card" + i + ".png", 260, 355, false, false);
+            } catch (IllegalArgumentException err)
+            {
+                cardImages[i] = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
+            }
+        }
+        
+        return cardImages;
     }
     
 }
