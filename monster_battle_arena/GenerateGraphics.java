@@ -4,10 +4,12 @@ import java.net.URISyntaxException;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
@@ -159,15 +161,86 @@ public class GenerateGraphics {
         editorBtn.setOnAction(e -> {
             
             // Remove the box containing main menu elements and load new assets
-            root.getChildren().remove(vertBox);
+            root.getChildren().removeAll(vertBox, video);
             Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
             
-            // Card graphic is downsized for now, but in future will be correctly sized
-            Image card39 = new Image("/ImageAssets/card39.png", 260, 355, false, false);
-            ImageView imageView = new ImageView(editor_bg);
-            ImageView cardView = new ImageView(card39);
-            cardView.relocate(105, 75);
+            /* Deck editor has 8 spots to place cards, so make 8 
+               containers to place the card images in. */
+            ImageView[] deckEditorCardView = new ImageView[8];
+            Image[] deckEditorCardImages = new Image[monsterList.length];
+            ImageView editorBgView = new ImageView(editor_bg);
             
+            /* Graphic for deck editor needs to be corrected, minor issues with
+               alignment occur when placing cards at equal distance from one another */
+            int imageSpacing = 105, graphicErrorSpacing = 2;
+            
+            // THIS HAS A HEFTY PERFORMANCE PENALTY, NEED TO LOOK INTO OPTIMIZATIONS
+            for (int i = 0; i < 8; i++)
+            {
+                /* TO-DO: Have placeholder graphics for other cards so we can
+                   load these images as "card + i + .png" rather than hardcode 39.
+                   Card graphic is downsized for now, but in future will be correctly sized */
+                try 
+                {
+                    deckEditorCardImages[i] = new Image("/ImageAssets/Cards/card" + i + ".png", 260, 355, false, false);
+                } catch (IllegalArgumentException err)
+                {
+                    deckEditorCardImages[i] = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
+                }
+                
+                // For the first 8 card images, set the ImageView to display the image
+                if (i < 8)
+                {
+                    ColorAdjust darken = new ColorAdjust();
+                    darken.setBrightness(-0.65);
+            
+                    deckEditorCardView[i] = new ImageView(deckEditorCardImages[i]);
+                    deckEditorCardView[i].setEffect(darken);
+                    deckEditorCardView[i].setCache(true);
+                    deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
+  
+                    if (i == 4)
+                        imageSpacing = 105;
+                    
+                    // A lot of stupid code to fix a slightly off graphical background
+                    if (i < 4)
+                    {
+                        deckEditorCardView[i].relocate(imageSpacing, 75);
+                        
+                        if (i == 2)
+                            deckEditorCardView[i].relocate(++imageSpacing, 75);
+                        
+                        if (i == 3)
+                            deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 75);
+                    }
+                    
+                    else if (i >= 4)
+                    {
+                        deckEditorCardView[i].relocate(imageSpacing, 515);
+                        
+                        if (i > 5)
+                            deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 515);
+                    }
+
+                    imageSpacing += 325;
+                }
+            }
+            
+            for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+            {
+                    int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
+                    System.out.println("Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
+                    
+                    // For the time being limit to first page of deck editor
+                    if (currentID > 7)
+                        continue;
+
+                    deckEditorCardView[currentID].setEffect(null);
+            }
+            
+            
+
+            /* Commented out at the moment since it was just for testing purposes
             // Set an event handler for mouse clicking on the card
             cardView.setOnMouseClicked(ev -> {
                 
@@ -185,9 +258,9 @@ public class GenerateGraphics {
                         }
                     });
                     
-                    /* Handles rapid mouse movement that can sometimes exit the bounds
-                       of the cardView object before setOnMouseMove event can be fired, 
-                       resulting in the card no longer being moved to the mouse coords */
+                    // Handles rapid mouse movement that can sometimes exit the bounds
+                    // of the cardView object before setOnMouseMove event can be fired, 
+                    // resulting in the card no longer being moved to the mouse coords 
                     cardView.setOnMouseExited(even -> {
                         
                         if (isMoving)
@@ -197,16 +270,26 @@ public class GenerateGraphics {
                         }
                     });
             });
+            */
             
-            // Lazy implementation of a back button
-            imageView.setOnMouseClicked(ev -> {
-                root.getChildren().removeAll(imageView, cardView);
+            Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
+            backBtn.relocate(1540, 950);
+            
+            backBtn.setOnAction(ev -> {
+                root.getChildren().removeAll(editorBgView, backBtn);
+                
+                for (int i = 0; i < deckEditorCardView.length; i++)
+                    root.getChildren().remove(deckEditorCardView[i]);
+                
                 root.getChildren().addAll(video, vertBox);
             });
             
-            // Remove the video asset from the main menu and add new assets
-            root.getChildren().remove(video);
-            root.getChildren().addAll(imageView, cardView);
+            // Add new assets
+            root.getChildren().addAll(editorBgView, backBtn);
+            
+            for (int i = 0; i < deckEditorCardView.length; i++)
+                    root.getChildren().add(deckEditorCardView[i]);
+            
         });
         
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));

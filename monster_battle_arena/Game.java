@@ -58,39 +58,9 @@ public class Game {
         
         System.out.println("[INFO] Generating player data...");
         player.setName("Bob");
-        
-        for (int i = 0; i < 3; i++)
-        {
-            /* Randomly pick 3 cards for the player to start with from the
-               specified range of cards. Range values are [x,y) */
-            switch (i)
-            {
-                case 0:
-                    int j = ThreadLocalRandom.current().nextInt(0, 4);
-                    player.getPersonalCardDeck().add(monsterList[j]);
-                    break;
-                    
-                case 1:
-                    int k = ThreadLocalRandom.current().nextInt(4, 8);
-                    player.getPersonalCardDeck().add(monsterList[k]);
-                    break;
-                    
-                case 2:
-                    int l = ThreadLocalRandom.current().nextInt(8, 12);
-                    player.getPersonalCardDeck().add(monsterList[l]);
-                    break;
-                    
-                default:
-                    System.err.println("[ERROR] Failed to add card to player hand!");
-                    break;
-            }
-        }
+        player.getPersonalCardDeck().add(monsterList[0]);
         
         System.out.println("[INFO] Player data successfully created");
-        
-        System.out.println(player.getName() + "'s randomly assigned cards are:");
-        for (int i = 0; i < 3; i++)
-            System.out.println(player.getPersonalCardDeck().get(i).getMonsterName());
     }
 
     public Monster[] getMonsterList()
