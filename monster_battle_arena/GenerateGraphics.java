@@ -35,21 +35,26 @@ public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
     
-    private Group mainMenuGroup, shopGroup, deckEditorGroup;
+    private Group root;
     private MediaView audio, video;
+    private MediaPlayer vidPlayer, audioPlayer;
+    private Media mainMenuBg, mainMenuAudio;
     private VBox vertBox;
     private Image[] cardImages;
+    private Stage mainStage;
+    private Scene mainMenu, shopMenu, deckEditorMenu;
 
     private final Player player;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0;
     private boolean isMoving = false;
     
-    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages)
+    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Stage mainStage)
     {
         this.player = player;
         this.monsterList = monsters;
         this.cardImages = cardImages;
+        this.mainStage = mainStage;
     }
     
     public Button makeButton(String text, String textColor, String bgColor, int fontSize, double minWidth)
@@ -101,15 +106,14 @@ public class GenerateGraphics {
         return shadow;
     }
     
-    public Scene createMainMenu(Stage mainStage) throws URISyntaxException
+    public Scene createMainMenu() throws URISyntaxException
     {
         // Paths to video and audio assets
         String videoPath = getClass().getResource("/VideoAssets/mainMenuBg.mp4").toURI().toString();
         String audioPath = getClass().getResource("/AudioAssets/mainMenu_Winters Tale.mp3").toURI().toString();
         
-        Group root = new Group();
-
-        Scene mainMenu = new Scene(root, 1920, 1080);
+        root = new Group();
+        mainMenu = new Scene(root, 1920, 1080);
         
         // Create a vertical box to hold menu elements in a single column.
         // makeVerticalBox parameters: spacing between nodes in Y-axis, posX, posY
@@ -120,16 +124,16 @@ public class GenerateGraphics {
         // Insets parameters (padding space in pixels): top, right, bottom, left
         vertBox.setPadding(new Insets(200, 540, 100, 600));
         
-        Media mainMenuBg = new Media(videoPath);
-        Media mainMenuAudio = new Media(audioPath);
+        mainMenuBg = new Media(videoPath);
+        mainMenuAudio = new Media(audioPath);
         
         // Media players for both audio and video
-        MediaPlayer vidPlayer = new MediaPlayer(mainMenuBg);
-        MediaPlayer audioPlayer = new MediaPlayer(mainMenuAudio);
+        vidPlayer = new MediaPlayer(mainMenuBg);
+        audioPlayer = new MediaPlayer(mainMenuAudio);
         
         /* Source of a very big and bad memory leak right here, set to loop twice
            until a solution can be determined.  */
-        vidPlayer.setCycleCount(2);
+        vidPlayer.setCycleCount(1);
         vidPlayer.setStopTime(Duration.seconds(9));
         
         audioPlayer.setVolume(0.40);
@@ -163,19 +167,20 @@ public class GenerateGraphics {
         editorBtn.setOnMouseExited(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         editorBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         
-        // What to do when the deck editor button is pressed
-        editorBtn.setOnAction(e -> {
-            root.getChildren().clear();
-            createDeckEditorMenu(root);   
-        });
+        final Scene deckEditorMenuInit = createDeckEditorMenu();
+        deckEditorMenu = deckEditorMenuInit;
         
+        // What to do when the deck editor button is pressed
+        editorBtn.setOnAction(e -> mainStage.setScene(deckEditorMenu));
+        
+        // Re-look over this, might not be needed
+        final Scene shopMenuInit = createShopMenu();
+        shopMenu = shopMenuInit;
+
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
-        shopBtn.setOnAction(e -> {
-            root.getChildren().clear();
-            createShopMenu(root);
-        });
+        shopBtn.setOnAction(e -> mainStage.setScene(shopMenu));
         
         settingsBtn.setOnMouseEntered(e -> settingsBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         settingsBtn.setOnMouseExited(e -> settingsBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
@@ -205,17 +210,18 @@ public class GenerateGraphics {
         
         vidPlayer.play();
         audioPlayer.play();
-        
-        mainMenuGroup = root;
-        
+                
         return mainMenu;
     }
     
-    private void createShopMenu(Group root)
+    private Scene createShopMenu()
     {
         /* NOTE: Assets created by this class are NOT being removed on main
                  menu reload. This inefficiency will need to be addressed. */
-
+        
+        Group shopGroup = new Group();
+        Scene shopMenu = new Scene(shopGroup, 1920, 1080);
+        
         HBox shopBox = new HBox(100);
         Image standard_card_pack = new Image("/ImageAssets/standard_card_pack.png", 220, 300, false, false);
         Image ultra_card_pack = new Image("/ImageAssets/ultra_card_pack.png", 220, 300, false, false);
@@ -335,22 +341,21 @@ public class GenerateGraphics {
         
         Image shop_bg = new Image("/ImageAssets/shop_bg.png");
         ImageView shopView = new ImageView(shop_bg);
-        shopView.setOnMouseClicked(ev -> {
-            root.getChildren().clear();
-        //  root.getChildren().removeAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
-            root.getChildren().addAll(audio, video, vertBox);
-        });
+        shopView.setOnMouseClicked(ev -> mainStage.setScene(mainMenu));
         
         shopBox.getChildren().addAll(scpImage, ucpImage);
         shopBox.setAlignment(Pos.CENTER);
         shopBox.relocate(690, 400);
-        root.getChildren().addAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
+        shopGroup.getChildren().addAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
         
-        shopGroup = root;
+        return shopMenu;
     }
     
-    private void createDeckEditorMenu(Group root)
+    private Scene createDeckEditorMenu()
     {
+        Group deckEditGroup = new Group();
+        Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080);
+        
         Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
             
         /* Deck editor has 8 spots to place cards, so make 8 
@@ -441,17 +446,7 @@ public class GenerateGraphics {
         backBtn.setOnMouseExited(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
 
-        backBtn.setOnAction(ev -> {
-            /*
-            root.getChildren().removeAll(editorBgView, backBtn);
-
-            for (int i = 0; i < deckEditorCardView.length; i++)
-                root.getChildren().remove(deckEditorCardView[i]);
-            */
-            root.getChildren().clear();
-
-            root.getChildren().addAll(audio, video, vertBox);
-        });
+        backBtn.setOnAction(ev -> mainStage.setScene(mainMenu));
 
         Button pageForward = makeButton("Page 2", "#00ffff", "#0d5cdb", 25, 100);
         pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
@@ -462,17 +457,17 @@ public class GenerateGraphics {
             Button pageBack = makeButton("Page 1", "#00ffff", "#0d5cdb", 25, 100);
             pageBack.relocate(700, 920);
             pageForward.setText("Page 3");
-            root.getChildren().add(pageBack);
+            deckEditGroup.getChildren().add(pageBack);
 
         });
 
         // Add new assets
-        root.getChildren().addAll(editorBgView, backBtn, pageForward);
+        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward);
 
         for (int i = 0; i < deckEditorCardView.length; i++)
-                root.getChildren().add(deckEditorCardView[i]);
+                deckEditGroup.getChildren().add(deckEditorCardView[i]);
         
-        deckEditorGroup = root;
+        return deckEditorScene;
     }
     
     /* Commented out at the moment since it was just for testing purposes

@@ -56,10 +56,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws URISyntaxException
     {
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, primaryStage);
 
         // Create main menu scene to display when the game starts
-        Scene mainMenu = gameGraphics.createMainMenu(primaryStage);
+        Scene mainMenu = gameGraphics.createMainMenu();
                 
         primaryStage.setTitle("Monster Battle Arena v" + version);
         primaryStage.setScene(mainMenu);
