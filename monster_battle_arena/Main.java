@@ -2,6 +2,7 @@ package monster_battle_arena;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.application.Application;
@@ -16,7 +17,7 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private String version = "0.05";
+    private String version = "0.09";
     Game game = new Game();
     Player player = new Player();
     Monster[] monsterList;
@@ -29,26 +30,30 @@ public class Main extends Application {
     
     public void init() throws IOException
     {
+        System.out.println("[INFO] Starting Monster Battle Arena v" + version);
         // Make a new instance of the game class and call the initialization method
         game.initGame(player);
         
         monsterList = game.getMonsterList();
         cardImages = game.loadCardImages();
         
-        /* RAM Usage task, to be used later
+        // RAM usage task
         new Timer().schedule(new TimerTask() {
             
-            Runtime rt = Runtime.getRuntime();
-            long ramUsed = rt.totalMemory() - rt.freeMemory();
+            long startTime = System.nanoTime();
             
             @Override
             public void run()
             {
-                System.out.println("[INFO] RAM Used: " + (ramUsed/1024L) + " MB");
+                long stopTime = System.nanoTime();
+                long delta_t = (stopTime - startTime)/1000000000;
+                System.gc();
+                Runtime rt = Runtime.getRuntime();
+                System.out.println("[" + delta_t + "s] Heap Space Used: " + ((rt.totalMemory() - rt.freeMemory())/1048576) + " MB" + 
+                                   "\t Total Heap Size: " + rt.totalMemory()/1048576 + " MB");
             }
             
-        }, 0, 1000);
-        */
+        }, 0, 1000);        
     }
     
     

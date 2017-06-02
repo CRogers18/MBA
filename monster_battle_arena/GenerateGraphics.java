@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -41,6 +42,7 @@ public class GenerateGraphics {
     private Media mainMenuBg, mainMenuAudio;
     private VBox vertBox;
     private Image[] cardImages;
+    private ImageView[] deckEditorCardView;
     private Stage mainStage;
     private Scene mainMenu, shopMenu, deckEditorMenu;
 
@@ -131,9 +133,9 @@ public class GenerateGraphics {
         vidPlayer = new MediaPlayer(mainMenuBg);
         audioPlayer = new MediaPlayer(mainMenuAudio);
         
-        /* Source of a very big and bad memory leak right here, set to loop twice
-           until a solution can be determined.  */
-        vidPlayer.setCycleCount(1);
+        /* Leak seems for now to be fixed, according to new RAM usage meter, 
+           will still keep an eye on this section in the future */
+        vidPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         vidPlayer.setStopTime(Duration.seconds(9));
         
         audioPlayer.setVolume(0.40);
@@ -171,7 +173,11 @@ public class GenerateGraphics {
         deckEditorMenu = deckEditorMenuInit;
         
         // What to do when the deck editor button is pressed
-        editorBtn.setOnAction(e -> mainStage.setScene(deckEditorMenu));
+        editorBtn.setOnAction(e -> {
+            updateDeckEditorCards();
+            mainStage.setScene(deckEditorMenu);
+            vidPlayer.stop();
+        });
         
         // Re-look over this, might not be needed
         final Scene shopMenuInit = createShopMenu();
@@ -180,7 +186,10 @@ public class GenerateGraphics {
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
-        shopBtn.setOnAction(e -> mainStage.setScene(shopMenu));
+        shopBtn.setOnAction(e -> {
+            mainStage.setScene(shopMenu);
+            vidPlayer.stop();
+        });
         
         settingsBtn.setOnMouseEntered(e -> settingsBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         settingsBtn.setOnMouseExited(e -> settingsBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
@@ -341,7 +350,10 @@ public class GenerateGraphics {
         
         Image shop_bg = new Image("/ImageAssets/shop_bg.png");
         ImageView shopView = new ImageView(shop_bg);
-        shopView.setOnMouseClicked(ev -> mainStage.setScene(mainMenu));
+        shopView.setOnMouseClicked(ev -> {
+            mainStage.setScene(mainMenu);
+            vidPlayer.play();
+        });
         
         shopBox.getChildren().addAll(scpImage, ucpImage);
         shopBox.setAlignment(Pos.CENTER);
@@ -360,14 +372,14 @@ public class GenerateGraphics {
             
         /* Deck editor has 8 spots to place cards, so make 8 
            containers to place the card images in. */
-        ImageView[] deckEditorCardView = new ImageView[8];
+        deckEditorCardView = new ImageView[8];
         ImageView editorBgView = new ImageView(editor_bg);
+        editorBgView.setId("Background_Image");
 
         /* Graphic for deck editor needs to be corrected, minor issues with
            alignment occur when placing cards at equal distance from one another */
         int imageSpacing = 105, graphicErrorSpacing = 2;
 
-        // THIS HAS A HEFTY PERFORMANCE PENALTY, NEED TO LOOK INTO OPTIMIZATIONS
         for (int i = 0; i < 8; i++)
         {
            
@@ -378,6 +390,7 @@ public class GenerateGraphics {
                 darken.setBrightness(-0.65);
 
                 deckEditorCardView[i] = new ImageView(cardImages[i]);
+                deckEditorCardView[i].setId("Card_Image_" + i);
                 deckEditorCardView[i].setEffect(darken);
                 deckEditorCardView[i].setCache(true);
                 deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
@@ -412,31 +425,12 @@ public class GenerateGraphics {
         for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
         {
                 int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
-                System.out.println("Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
 
                 // For the time being limit to first page of deck editor
                 if (currentID > 7)
                     continue;
 
                 deckEditorCardView[currentID].setEffect(null);
-        }
-        
-        for (int i = 0; i < 8; i++)
-        {
-            final int index = i;
-            
-            if (deckEditorCardView[index].getEffect() == null)
-            {
-                deckEditorCardView[index].setOnMouseEntered(e -> deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60)));
-                deckEditorCardView[index].setOnMouseExited(e -> deckEditorCardView[index].setEffect(null));
-                
-                deckEditorCardView[index].setOnMouseClicked(e -> {
-                    
-                    
-                
-                });
-                
-            }
         }
 
         Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
@@ -446,7 +440,10 @@ public class GenerateGraphics {
         backBtn.setOnMouseExited(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
 
-        backBtn.setOnAction(ev -> mainStage.setScene(mainMenu));
+        backBtn.setOnAction(ev -> {
+            mainStage.setScene(mainMenu);
+            vidPlayer.play();
+        });
 
         Button pageForward = makeButton("Page 2", "#00ffff", "#0d5cdb", 25, 100);
         pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
@@ -463,11 +460,42 @@ public class GenerateGraphics {
 
         // Add new assets
         deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward);
-
-        for (int i = 0; i < deckEditorCardView.length; i++)
-                deckEditGroup.getChildren().add(deckEditorCardView[i]);
+        deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
+    }
+    
+    // WIP, not totally functional at the moment
+    private void updateDeckEditorCards()
+    {
+        for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+        {
+            int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
+            System.out.println("[INFO] Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
+
+            // For the time being limit to first page of deck editor
+            if (currentID > 7)
+                continue;
+            
+            deckEditorCardView[currentID].setEffect(null);
+        }
+        
+        for (int i = 0; i < 8; i++)
+        {
+            final int index = i;
+            
+            if (deckEditorCardView[index].getEffect() == null)
+            {
+                deckEditorCardView[index].setOnMouseEntered(e -> deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60)));
+                deckEditorCardView[index].setOnMouseExited(e -> deckEditorCardView[index].setEffect(null));
+                
+                deckEditorCardView[index].setOnMouseClicked(e -> {
+                    
+                    // Do something when clicked...
+                
+                });
+            }
+        }
     }
     
     /* Commented out at the moment since it was just for testing purposes

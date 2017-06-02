@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.concurrent.ThreadLocalRandom;
 import javafx.scene.image.Image;
 
 /*
@@ -46,7 +45,7 @@ public class Game {
             monsterList[i] = newCard.initMonster(i, monsterName, hitpoints, strength, defense, energyRequired, rarity);
         }
         
-        System.out.println("[INFO] Monster Data Successfully Loaded");
+        System.out.println("[INFO] Monster data successfully loaded");
         for (int i = 0; i < monsterList.length; i++)
         {
             System.out.println("Name: " + monsterList[i].getMonsterName() + ", Hitpoints: "
@@ -57,11 +56,11 @@ public class Game {
                                         + monsterList[i].getRarity());
         }
         
-        System.out.println("[INFO] Generating player data...");
+        System.out.println("[INFO] Player data not found, creating new player data");
         player.setName("Bob");
         player.getPersonalCardDeck().add(monsterList[7]);
         
-        System.out.println("[INFO] Player data successfully created");
+        System.out.println("[INFO] Player data successfully loaded");
     }
 
     public Monster[] getMonsterList()
@@ -89,6 +88,7 @@ public class Game {
             }
         }
         
+        System.out.println("[INFO] Card images successfully loaded");
         return cardImages;
     }
     
