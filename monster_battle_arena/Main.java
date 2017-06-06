@@ -2,7 +2,6 @@ package monster_battle_arena;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.DecimalFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.application.Application;
@@ -17,11 +16,11 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private String version = "0.09";
-    Game game = new Game();
-    Player player = new Player();
-    Monster[] monsterList;
-    Image[] cardImages;
+    private final String version = "0.09";
+    private final Game game = new Game();
+    private final Player player = new Player();
+    private Monster[] monsterList;
+    private Image[] cardImages, cardBanners;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -31,11 +30,13 @@ public class Main extends Application {
     public void init() throws IOException
     {
         System.out.println("[INFO] Starting Monster Battle Arena v" + version);
+        
         // Make a new instance of the game class and call the initialization method
         game.initGame(player);
         
         monsterList = game.getMonsterList();
         cardImages = game.loadCardImages();
+        cardBanners = game.loadCardBanners();
         
         // RAM usage task
         new Timer().schedule(new TimerTask() {
@@ -53,7 +54,7 @@ public class Main extends Application {
                                    "\t Total Heap Size: " + rt.totalMemory()/1048576 + " MB");
             }
             
-        }, 0, 1000);        
+        }, 0, 1000);  
     }
     
     
@@ -61,7 +62,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws URISyntaxException
     {
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, primaryStage);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage);
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu();

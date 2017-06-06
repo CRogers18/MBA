@@ -8,7 +8,7 @@ class Monster {
     
     private int monsterID;
     private int hitpoints, strength, defense, energyRequired, rarity;
-
+    private String monsterName;
     private boolean willTaunt;
     
     public Monster initMonster(int monsterID, String monsterName, int hitpoints, int strength, int defense, int energyRequired, int rarity)
@@ -22,8 +22,6 @@ class Monster {
         this.rarity = rarity;
         return this;
     }
-    
-    private String monsterName;
 
     public int getEnergyRequired()
     {

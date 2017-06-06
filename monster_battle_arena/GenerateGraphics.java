@@ -6,7 +6,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -36,26 +35,24 @@ public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
     
-    private Group root;
-    private MediaView audio, video;
-    private MediaPlayer vidPlayer, audioPlayer;
-    private Media mainMenuBg, mainMenuAudio;
-    private VBox vertBox;
-    private Image[] cardImages;
+    private Group root, deckEditGroup;
+    private MediaPlayer vidPlayer;
+    private final Image[] cardImages, cardBanners;
     private ImageView[] deckEditorCardView;
-    private Stage mainStage;
+    private final Stage mainStage;
     private Scene mainMenu, shopMenu, deckEditorMenu;
 
     private final Player player;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0;
-    private boolean isMoving = false;
+    private boolean isMoving = false, bannerIsLoaded = false;
     
-    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Stage mainStage)
+    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
     {
         this.player = player;
         this.monsterList = monsters;
         this.cardImages = cardImages;
+        this.cardBanners = cardBanners;
         this.mainStage = mainStage;
     }
     
@@ -119,19 +116,19 @@ public class GenerateGraphics {
         
         // Create a vertical box to hold menu elements in a single column.
         // makeVerticalBox parameters: spacing between nodes in Y-axis, posX, posY
-        vertBox = new VBox(40);
+        VBox vertBox = new VBox(40);
         vertBox.setAlignment(Pos.CENTER);
         vertBox.setPrefWidth(300);
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
         vertBox.setPadding(new Insets(200, 540, 100, 600));
         
-        mainMenuBg = new Media(videoPath);
-        mainMenuAudio = new Media(audioPath);
+        Media mainMenuBg = new Media(videoPath);
+        Media mainMenuAudio = new Media(audioPath);
         
         // Media players for both audio and video
         vidPlayer = new MediaPlayer(mainMenuBg);
-        audioPlayer = new MediaPlayer(mainMenuAudio);
+        MediaPlayer audioPlayer = new MediaPlayer(mainMenuAudio);
         
         /* Leak seems for now to be fixed, according to new RAM usage meter, 
            will still keep an eye on this section in the future */
@@ -143,8 +140,8 @@ public class GenerateGraphics {
         audioPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         audioPlayer.setOnEndOfMedia(() -> audioPlayer.seek(Duration.seconds(0)));
         
-        audio = new MediaView(audioPlayer);
-        video = new MediaView(vidPlayer);
+        MediaView audio = new MediaView(audioPlayer);
+        MediaView video = new MediaView(vidPlayer);
 
         // Create text for main game title
         // makeText parameters: text content, text CSS styling, text font size
@@ -365,7 +362,7 @@ public class GenerateGraphics {
     
     private Scene createDeckEditorMenu()
     {
-        Group deckEditGroup = new Group();
+        deckEditGroup = new Group();
         Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080);
         
         Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
@@ -465,14 +462,14 @@ public class GenerateGraphics {
         return deckEditorScene;
     }
     
-    // WIP, not totally functional at the moment
     private void updateDeckEditorCards()
     {
+        
         for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
-        {
-            int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
-            System.out.println("[INFO] Checking monsterID: " + player.getPersonalCardDeck().get(i).getMonsterID());
-
+        {   
+            int currentID = player.getPersonalCardDeck().get(i).getMonsterID(); 
+            System.out.println("[INFO] Checking for monsterID: " + currentID);
+            
             // For the time being limit to first page of deck editor
             if (currentID > 7)
                 continue;
@@ -489,10 +486,23 @@ public class GenerateGraphics {
                 deckEditorCardView[index].setOnMouseEntered(e -> deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60)));
                 deckEditorCardView[index].setOnMouseExited(e -> deckEditorCardView[index].setEffect(null));
                 
+                // Temporary WIP
+                ImageView cardBanner = new ImageView(cardBanners[0]);
+                
+                // WIP for cardbanners on the side
                 deckEditorCardView[index].setOnMouseClicked(e -> {
                     
-                    // Do something when clicked...
-                
+                    if (!bannerIsLoaded)
+                    {
+                        cardBanner.relocate(1460, 5);
+                        deckEditGroup.getChildren().add(cardBanner);
+                    }
+                    
+                    if (bannerIsLoaded)
+                        deckEditGroup.getChildren().remove(cardBanner);
+                    
+                    bannerIsLoaded = !bannerIsLoaded;
+                    
                 });
             }
         }

@@ -2,6 +2,9 @@ package monster_battle_arena;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/*
+ * @authors Howard Cheung and Coleman Rogers
+ */
 public class RanNumGen 
 {    
     private int generator(int num1, int num2)

@@ -16,7 +16,7 @@ public class Game {
     
     public void initGame(Player player) throws IOException, FileNotFoundException
     {
-        // Array will contain monster data extraced from the text file as strings
+        // Array will contain monster data extracted from the text file as strings
         String[] monsterData = new String[40];
         
         // Input stream retrieves monsterData text file to be read from
@@ -33,7 +33,7 @@ public class Game {
         for (int i = 0; i < monsterList.length; i++)
         {
             monsterData[i] = br.readLine();
-            String[] convertedData = monsterData[i].split("[ ]");
+            String[] convertedData = monsterData[i].split(" ");
             String monsterName = convertedData[0];
             int hitpoints = Integer.parseInt(convertedData[1]);
             int strength = Integer.parseInt(convertedData[2]);
@@ -63,16 +63,6 @@ public class Game {
         System.out.println("[INFO] Player data successfully loaded");
     }
 
-    public Monster[] getMonsterList()
-    {
-        return monsterList;
-    }
-
-    public void setMonsterList(Monster[] monsterList)
-    {
-        this.monsterList = monsterList;
-    }
-
     public Image[] loadCardImages()
     {
         Image[] cardImages = new Image[monsterList.length];
@@ -90,6 +80,35 @@ public class Game {
         
         System.out.println("[INFO] Card images successfully loaded");
         return cardImages;
+    }
+    
+    public Image[] loadCardBanners()
+    {
+        Image[] cardBanners = new Image[monsterList.length];
+        
+        for (int i = 0; i < 8; i++)
+        {
+            try
+            {
+                cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".png", 260, 355, false, false);
+            } catch (IllegalArgumentException err)
+            {
+                cardBanners[i] = new Image("/ImageAssets/shark.jpg", 460, 70, false, false);
+            }
+        }
+        
+        System.out.println("[INFO] Card banners successfully loaded");
+        return cardBanners;
+    }
+    
+    public Monster[] getMonsterList()
+    {
+        return monsterList;
+    }
+
+    public void setMonsterList(Monster[] monsterList)
+    {
+        this.monsterList = monsterList;
     }
     
 }
