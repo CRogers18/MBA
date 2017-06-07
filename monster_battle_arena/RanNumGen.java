@@ -117,7 +117,7 @@ public class RanNumGen
         
         // Add the cards dropped to the player's card deck
         for (int i = 0; i < cardsDropped.length; i++)
-            player.getPersonalCardDeck().add(cardsDropped[i]);
+            player.getCardPool().add(cardsDropped[i]);
         
         System.out.println("");
         

@@ -260,7 +260,7 @@ public class GenerateGraphics {
         playerGemBox.relocate(50, 50);
         Image gemIcon = new Image("/ImageAssets/gem_currency.png", 40, 40, false, false);
         ImageView gemView1 = new ImageView(gemIcon);
-        String gemCount = Integer.toString(player.getGold());
+        String gemCount = Integer.toString(player.getGemBalance());
         Text playerGemCount = new Text(gemCount);
         playerGemCount.setFill(Color.WHITE);
         playerGemCount.setFont(Font.font("Serif", FontWeight.BOLD, 30));
@@ -294,13 +294,13 @@ public class GenerateGraphics {
         
         // Standard card pack opening
         scpImage.setOnMouseClicked(e -> {
-            int currentGemCount = player.getGold();
+            int currentGemCount = player.getGemBalance();
             
             if (currentGemCount >= 100)
             {
-                player.setGold(currentGemCount-100);
+                player.setGemBalance(currentGemCount-100);
 
-                String newGemCount = Integer.toString(player.getGold());
+                String newGemCount = Integer.toString(player.getGemBalance());
                 playerGemCount.setText(newGemCount);
 
                 RanNumGen openPack = new RanNumGen();
@@ -309,8 +309,8 @@ public class GenerateGraphics {
                 cardPacksOpened += 1;
                 System.out.println("Standard Opened. Card packs opened so far: " + cardPacksOpened);
                 
-                for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
-                    System.out.println("Card " + i + " is " + player.getPersonalCardDeck().get(i).getMonsterName());
+                for (int i = 0; i < player.getCardPool().size(); i++)
+                    System.out.println("Card " + i + " is " + player.getCardPool().get(i).getMonsterName());
             }
             
             else
@@ -320,13 +320,13 @@ public class GenerateGraphics {
         
         // Ultra card pack opening
         ucpImage.setOnMouseClicked(e -> {
-            int currentGemCount = player.getGold();
+            int currentGemCount = player.getGemBalance();
             
             if (currentGemCount >= 400)
             {
-                player.setGold(currentGemCount-400);
+                player.setGemBalance(currentGemCount-400);
 
-                String newGemCount = Integer.toString(player.getGold());
+                String newGemCount = Integer.toString(player.getGemBalance());
                 playerGemCount.setText(newGemCount);
 
                 RanNumGen openPack = new RanNumGen();
@@ -335,8 +335,8 @@ public class GenerateGraphics {
                 cardPacksOpened += 1;
                 System.out.println("Ultra Opened. Card packs opened so far: " + cardPacksOpened);
                 
-                for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
-                    System.out.println("Card " + i + " is " + player.getPersonalCardDeck().get(i).getMonsterName());
+                for (int i = 0; i < player.getCardPool().size(); i++)
+                    System.out.println("Card " + i + " is " + player.getCardPool().get(i).getMonsterName());
             }
             
             else
@@ -419,9 +419,9 @@ public class GenerateGraphics {
             }
         }
 
-        for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+        for (int i = 0; i < player.getCardPool().size(); i++)
         {
-                int currentID = player.getPersonalCardDeck().get(i).getMonsterID();
+                int currentID = player.getCardPool().get(i).getMonsterID();
 
                 // For the time being limit to first page of deck editor
                 if (currentID > 7)
@@ -450,6 +450,7 @@ public class GenerateGraphics {
 
             Button pageBack = makeButton("Page 1", "#00ffff", "#0d5cdb", 25, 100);
             pageBack.relocate(700, 920);
+            pageBack.setDisable(true);
             pageForward.setText("Page 3");
             deckEditGroup.getChildren().add(pageBack);
 
@@ -465,9 +466,9 @@ public class GenerateGraphics {
     private void updateDeckEditorCards()
     {
         
-        for (int i = 0; i < player.getPersonalCardDeck().size(); i++)
+        for (int i = 0; i < player.getCardPool().size(); i++)
         {   
-            int currentID = player.getPersonalCardDeck().get(i).getMonsterID(); 
+            int currentID = player.getCardPool().get(i).getMonsterID(); 
             System.out.println("[INFO] Checking for monsterID: " + currentID);
             
             // For the time being limit to first page of deck editor

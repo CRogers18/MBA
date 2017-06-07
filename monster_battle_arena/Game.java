@@ -46,6 +46,8 @@ public class Game {
         }
         
         System.out.println("[INFO] Monster data successfully loaded");
+        
+        /*  Commented out as this system works perfectly and checking it is not needed
         for (int i = 0; i < monsterList.length; i++)
         {
             System.out.println("Name: " + monsterList[i].getMonsterName() + ", Hitpoints: "
@@ -55,10 +57,14 @@ public class Game {
                                         + monsterList[i].getEnergyRequired() + ", Rarity: "
                                         + monsterList[i].getRarity());
         }
+        */
         
+        // Will need to include a check for player data at some point here
         System.out.println("[INFO] Player data not found, creating new player data");
         player.setName("Bob");
-        player.getPersonalCardDeck().add(monsterList[7]);
+        
+        // Default adds card 7 to the player's card pool for testing purposes
+        player.getCardPool().add(monsterList[7]);
         
         System.out.println("[INFO] Player data successfully loaded");
     }
