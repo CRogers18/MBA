@@ -73,7 +73,7 @@ public class Game {
     {
         Image[] cardImages = new Image[monsterList.length];
         
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < monsterList.length; i++)
         {
             try
             {

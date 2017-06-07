@@ -83,5 +83,29 @@ public class Player {
     {
         this.customDeckNames = customDeckNames;
     }
+
+    public void sortCardPool(ArrayList <Monster> unsortedCardPool, Monster[] monsterList)
+    {
+        int[] cardCounts = new int[40];
+        ArrayList <Monster> orderedPool = new ArrayList <>();
+        
+        for (Monster card : unsortedCardPool)
+            cardCounts[card.getMonsterID()] += 1;
+        
+        for (int i = 0; i < cardCounts.length; i++)
+        {
+            int count = cardCounts[i];
+            
+            for (int j = 0; j < count; j++)
+                orderedPool.add(monsterList[i]);     
+        }
+        
+        this.cardPool = orderedPool;
+        
+        /*
+        for (Monster card : cardPool)
+            System.out.println("CardID: " + card.getMonsterID());
+        */
+    }
     
 }

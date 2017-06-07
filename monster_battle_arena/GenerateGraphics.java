@@ -44,7 +44,7 @@ public class GenerateGraphics {
 
     private final Player player;
     private final Monster[] monsterList;
-    private int cardPacksOpened = 0;
+    private int cardPacksOpened = 0, pageNumber = 1;
     private boolean isMoving = false, bannerIsLoaded = false;
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
@@ -308,14 +308,10 @@ public class GenerateGraphics {
 
                 cardPacksOpened += 1;
                 System.out.println("Standard Opened. Card packs opened so far: " + cardPacksOpened);
-                
-                for (int i = 0; i < player.getCardPool().size(); i++)
-                    System.out.println("Card " + i + " is " + player.getCardPool().get(i).getMonsterName());
             }
             
             else
                 System.out.println("Insufficient funds to purchase pack!");
-            
         });
         
         // Ultra card pack opening
@@ -334,15 +330,11 @@ public class GenerateGraphics {
 
                 cardPacksOpened += 1;
                 System.out.println("Ultra Opened. Card packs opened so far: " + cardPacksOpened);
-                
-                for (int i = 0; i < player.getCardPool().size(); i++)
-                    System.out.println("Card " + i + " is " + player.getCardPool().get(i).getMonsterName());
             }
             
             else
                 // Might play an audio clip here in the future
                 System.out.println("Insufficient funds to purchase pack!");
-            
         });
         
         Image shop_bg = new Image("/ImageAssets/shop_bg.png");
@@ -363,8 +355,7 @@ public class GenerateGraphics {
     private Scene createDeckEditorMenu()
     {
         deckEditGroup = new Group();
-        Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080);
-        
+        Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080); 
         Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
             
         /* Deck editor has 8 spots to place cards, so make 8 
@@ -379,7 +370,6 @@ public class GenerateGraphics {
 
         for (int i = 0; i < 8; i++)
         {
-           
             // For the first 8 card images, set the ImageView to display the image
             if (i < 8)
             {
@@ -387,7 +377,6 @@ public class GenerateGraphics {
                 darken.setBrightness(-0.65);
 
                 deckEditorCardView[i] = new ImageView(cardImages[i]);
-                deckEditorCardView[i].setId("Card_Image_" + i);
                 deckEditorCardView[i].setEffect(darken);
                 deckEditorCardView[i].setCache(true);
                 deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
@@ -418,17 +407,64 @@ public class GenerateGraphics {
                 imageSpacing += 325;
             }
         }
+        
+        Button pageForward = makeButton("Page " + (pageNumber + 1), "#00ffff", "#0d5cdb", 25, 200);
+        pageForward.setOnMouseEntered(e -> pageForward.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        pageForward.setOnMouseExited(e -> pageForward.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
+        pageForward.relocate(900, 920);
+        
+        Button pageBack = makeButton("Page " + (pageNumber - 1), "#00ffff", "#0d5cdb", 25, 200);
+        pageBack.setOnMouseEntered(e -> pageBack.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        pageBack.setOnMouseExited(e -> pageBack.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        pageBack.setEffect(makeDropShadow(Color.BLUE, 40));
+        pageBack.relocate(500, 920);
+        pageBack.setDisable(true);
+        pageBack.setText("");
 
-        for (int i = 0; i < player.getCardPool().size(); i++)
-        {
-                int currentID = player.getCardPool().get(i).getMonsterID();
-
-                // For the time being limit to first page of deck editor
-                if (currentID > 7)
-                    continue;
-
-                deckEditorCardView[currentID].setEffect(null);
-        }
+        pageBack.setOnAction(ev -> {     
+            pageForward.setText("Page " + pageNumber);
+            pageNumber -= 1;
+            
+            if (pageNumber == 1)
+            {
+                pageBack.setDisable(true);
+                pageBack.setText("");
+            }
+            
+            if (pageNumber > 1)
+            {
+                pageBack.setText("Page " + (pageNumber - 1));
+                pageBack.setDisable(false);
+            }
+            
+            if (pageNumber == 4 && pageForward.isDisabled())
+                pageForward.setDisable(false);
+                
+            updateDeckEditorCards();
+        });
+        
+        pageForward.setOnAction(ev -> { 
+            pageBack.setText("Page " + pageNumber);
+            pageNumber += 1;
+            
+            if (pageNumber == 5)
+            {
+                pageForward.setText("");
+                pageForward.setDisable(true);
+            }
+            
+            else
+            {
+                pageForward.setText("Page " + (pageNumber + 1));
+                pageForward.setDisable(false);
+            }
+            
+            if (pageNumber > 1)
+                pageBack.setDisable(false);
+            
+            updateDeckEditorCards();  
+        });
 
         Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
         backBtn.relocate(1540, 950);
@@ -438,53 +474,102 @@ public class GenerateGraphics {
         backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
 
         backBtn.setOnAction(ev -> {
+            pageNumber = 1;
+            pageForward.setText("Page " + (pageNumber + 1));
+            pageForward.setDisable(false);
+            pageBack.setText("");
+            pageBack.setDisable(true);
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
 
-        Button pageForward = makeButton("Page 2", "#00ffff", "#0d5cdb", 25, 100);
-        pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
-        pageForward.relocate(900, 920);
-
-        pageForward.setOnAction(ev -> {
-
-            Button pageBack = makeButton("Page 1", "#00ffff", "#0d5cdb", 25, 100);
-            pageBack.relocate(700, 920);
-            pageBack.setDisable(true);
-            pageForward.setText("Page 3");
-            deckEditGroup.getChildren().add(pageBack);
-
-        });
-
         // Add new assets
-        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward);
+        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward, pageBack);
         deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
     }
     
+    // OPTIMIZE ME PLEASE, HEFTY PERFORMANCE COSTS //
     private void updateDeckEditorCards()
     {
+        // Sort in ascending order, player card pool, by monster ID
+        player.sortCardPool(player.getCardPool(), monsterList);
         
+        int lower = ((pageNumber - 1) * 8);
+        int upper = lower + 7;
+        
+        // Since we don't have a page 0, set it to 1 if it hits 0 or lower
+        if (pageNumber <= 0)
+            pageNumber = 1;
+        
+        System.out.println("Page number is " + pageNumber);
+        
+        int imageSpacing = 105, graphicErrorSpacing = 2, cardCheck = lower;
+        
+        for (int i = 0; i < 8; i++)
+        {
+            ColorAdjust darken = new ColorAdjust();
+            darken.setBrightness(-0.65);
+
+            deckEditorCardView[i].setImage(cardImages[cardCheck]);
+            deckEditorCardView[i].setEffect(darken);
+            deckEditorCardView[i].setCache(true);
+            deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
+
+            if (i == 4)
+                imageSpacing = 105;
+
+            // A lot of stupid code to fix a slightly off graphical background
+            if (i < 4)
+            {
+                deckEditorCardView[i].relocate(imageSpacing, 75);
+
+                if (i == 2)
+                    deckEditorCardView[i].relocate(++imageSpacing, 75);
+
+                if (i == 3)
+                    deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 75);
+            }
+
+            else if (i >= 4)
+            {
+                deckEditorCardView[i].relocate(imageSpacing, 515);
+
+                if (i > 5)
+                    deckEditorCardView[i].relocate(imageSpacing + graphicErrorSpacing, 515);
+            }
+
+            imageSpacing += 325;
+            cardCheck++;
+        }
+                
+        // This needs to be dependent on if the page is changing, i needs to be
+        // the calculated lower bound and for i < x, x needs to be the 
+        // calculated upper bound
         for (int i = 0; i < player.getCardPool().size(); i++)
-        {   
-            int currentID = player.getCardPool().get(i).getMonsterID(); 
-            System.out.println("[INFO] Checking for monsterID: " + currentID);
+        {
             
-            // For the time being limit to first page of deck editor
-            if (currentID > 7)
-                continue;
-            
-            deckEditorCardView[currentID].setEffect(null);
+            int currentID = player.getCardPool().get(i).getMonsterID();
+        //  System.out.println("[INFO] Checking for monsterID: " + currentID + " on page " + pageNumber
+        //                     + " between range " + lower + "-> " + upper);
+                
+            if (currentID >= lower && currentID <= upper)
+                deckEditorCardView[currentID % 8].setEffect(null);
         }
         
+        /*  Un-comment later to DEBUG and for making the pretty stuff look pretty again
+        // This doesn't need to change
         for (int i = 0; i < 8; i++)
         {
             final int index = i;
             
             if (deckEditorCardView[index].getEffect() == null)
             {
-                deckEditorCardView[index].setOnMouseEntered(e -> deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60)));
+                deckEditorCardView[index].setOnMouseEntered(e -> {
+                    System.out.println("Entered card at index " + index);
+                    deckEditorCardView[index].setEffect(makeDropShadow(Color.BLUE, 60));
+                });
                 deckEditorCardView[index].setOnMouseExited(e -> deckEditorCardView[index].setEffect(null));
                 
                 // Temporary WIP
@@ -503,10 +588,11 @@ public class GenerateGraphics {
                         deckEditGroup.getChildren().remove(cardBanner);
                     
                     bannerIsLoaded = !bannerIsLoaded;
-                    
                 });
             }
         }
+        */
+        
     }
     
     /* Commented out at the moment since it was just for testing purposes
