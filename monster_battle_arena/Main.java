@@ -57,7 +57,6 @@ public class Main extends Application {
         }, 0, 1000);  
     }
     
-    
     @Override
     public void start(Stage primaryStage) throws URISyntaxException
     {

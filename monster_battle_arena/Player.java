@@ -97,7 +97,7 @@ public class Player {
             int count = cardCounts[i];
             
             for (int j = 0; j < count; j++)
-                orderedPool.add(monsterList[i]);     
+                orderedPool.add(monsterList[i]);
         }
         
         this.cardPool = orderedPool;
