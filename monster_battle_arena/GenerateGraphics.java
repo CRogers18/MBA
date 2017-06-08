@@ -183,6 +183,7 @@ public class GenerateGraphics {
         shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        
         shopBtn.setOnAction(e -> {
             mainStage.setScene(shopMenu);
             vidPlayer.stop();
@@ -363,6 +364,12 @@ public class GenerateGraphics {
         deckEditorCardView = new ImageView[8];
         ImageView editorBgView = new ImageView(editor_bg);
         editorBgView.setId("Background_Image");
+        
+        // Container to hold card banners on right side of screen
+        VBox cardBannerBox = makeVerticalBox(30);
+        
+        // Insets parameters (padding space in pixels): top, right, bottom, left
+        cardBannerBox.setPadding(new Insets(5, 0, 200, 1500));
 
         /* Graphic for deck editor needs to be corrected, minor issues with
            alignment occur when placing cards at equal distance from one another */
@@ -484,7 +491,7 @@ public class GenerateGraphics {
         });
 
         // Add new assets
-        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward, pageBack);
+        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward, pageBack, cardBannerBox);
         deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
