@@ -106,7 +106,7 @@ public class RanNumGen
                 {
                     System.out.println("Rarity 5 rolled");
                     // Rarity 5 card drop
-                    cardRoll = generator(35, 40);
+                    cardRoll = generator(35, 39);
                     cardsDropped[j] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[j].getMonsterName());
                 }

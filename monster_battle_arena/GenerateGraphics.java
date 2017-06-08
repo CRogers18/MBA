@@ -338,17 +338,23 @@ public class GenerateGraphics {
                 System.out.println("Insufficient funds to purchase pack!");
         });
         
-        Image shop_bg = new Image("/ImageAssets/shop_bg.png");
-        ImageView shopView = new ImageView(shop_bg);
-        shopView.setOnMouseClicked(ev -> {
+        Button previous = makeButton("Back", "#00ffff", "#0d5cdb", 25, 200);
+        previous.relocate(10, 900);
+        previous.setOnMouseEntered(e -> previous.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        previous.setOnMouseExited(e -> previous.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        previous.setOnAction(ev -> {
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
         
+        
+        Image shop_bg = new Image("/ImageAssets/shop_bg.png");
+        ImageView shopView = new ImageView(shop_bg);
+
         shopBox.getChildren().addAll(scpImage, ucpImage);
         shopBox.setAlignment(Pos.CENTER);
         shopBox.relocate(690, 400);
-        shopGroup.getChildren().addAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox);
+        shopGroup.getChildren().addAll(shopView, backdrop, shopBox, priceBox1, priceBox2, playerGems, playerGemBox, previous);
         
         return shopMenu;
     }
