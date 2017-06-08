@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -41,6 +42,7 @@ public class GenerateGraphics {
     private ImageView[] deckEditorCardView;
     private final Stage mainStage;
     private Scene mainMenu, shopMenu, deckEditorMenu;
+    private VBox cardBannerBox;
 
     private final Player player;
     private final Monster[] monsterList;
@@ -306,6 +308,9 @@ public class GenerateGraphics {
 
                 RanNumGen openPack = new RanNumGen();
                 openPack.packOpening(player, false, monsterList);
+                
+                // Sort cards in ascending order, player card pool, by monster ID
+                player.sortCardPool(player.getCardPool(), monsterList);
 
                 cardPacksOpened += 1;
                 System.out.println("Standard Opened. Card packs opened so far: " + cardPacksOpened);
@@ -328,6 +333,9 @@ public class GenerateGraphics {
 
                 RanNumGen openPack = new RanNumGen();
                 openPack.packOpening(player, true, monsterList);
+                
+                // Sort cards in ascending order, player card pool, by monster ID
+                player.sortCardPool(player.getCardPool(), monsterList);
 
                 cardPacksOpened += 1;
                 System.out.println("Ultra Opened. Card packs opened so far: " + cardPacksOpened);
@@ -346,7 +354,6 @@ public class GenerateGraphics {
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
-        
         
         Image shop_bg = new Image("/ImageAssets/shop_bg.png");
         ImageView shopView = new ImageView(shop_bg);
@@ -372,10 +379,10 @@ public class GenerateGraphics {
         editorBgView.setId("Background_Image");
         
         // Container to hold card banners on right side of screen
-        VBox cardBannerBox = makeVerticalBox(30);
+        cardBannerBox = makeVerticalBox(5);
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
-        cardBannerBox.setPadding(new Insets(5, 0, 200, 1500));
+        cardBannerBox.setPadding(new Insets(5, 0, 400, 1460));
 
         /* Graphic for deck editor needs to be corrected, minor issues with
            alignment occur when placing cards at equal distance from one another */
@@ -497,7 +504,7 @@ public class GenerateGraphics {
         });
 
         // Add new assets
-        deckEditGroup.getChildren().addAll(editorBgView, backBtn, pageForward, pageBack, cardBannerBox);
+        deckEditGroup.getChildren().addAll(editorBgView, cardBannerBox, backBtn, pageForward, pageBack);
         deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
@@ -506,9 +513,6 @@ public class GenerateGraphics {
     // OPTIMIZE ME PLEASE, HEFTY PERFORMANCE COSTS IN THIS METHOD //
     private void updateDeckEditorCards()
     {
-        // Sort in ascending order, player card pool, by monster ID
-        player.sortCardPool(player.getCardPool(), monsterList);
-        
         // Page-dependent card ID calculations
         int lower = ((pageNumber - 1) * 8);
         int upper = lower + 7;
@@ -529,6 +533,7 @@ public class GenerateGraphics {
             // Clear the mouse entered and exited event handlers
             deckEditorCardView[i].setOnMouseEntered(e -> {});
             deckEditorCardView[i].setOnMouseExited(e -> {});
+            deckEditorCardView[i].setOnMouseClicked(e -> {});
             
             deckEditorCardView[i].setEffect(darken);
             deckEditorCardView[i].setCache(true);
@@ -560,24 +565,60 @@ public class GenerateGraphics {
             imageSpacing += 325;
             cardCheck++;
         }
-                
+        
+        int currentIDChecked = 0;
         // i needs to be the calculated lower bound and for i < x, x needs to be the calculated upper bound
         for (int i = 0; i < player.getCardPool().size(); i++)
         {
-            
             int currentID = player.getCardPool().get(i).getMonsterID();
-        //  System.out.println("[INFO] Checking for monsterID: " + currentID + " on page " + pageNumber
-        //                     + " between range " + lower + "-> " + upper);
-                
+            
+            // Small optimization for skipping previously checked cards, WIP right now
+            if (currentIDChecked == currentID && currentID > 0)
+                continue;
+            
+            System.out.println("[INFO] Checking for monsterID: " + currentID + " on page " + pageNumber
+                   + " between range " + lower + " -> " + upper);
+            
             if (currentID >= lower && currentID <= upper)
             {
                 deckEditorCardView[currentID % 8].setEffect(null);
                 deckEditorCardView[currentID % 8].setOnMouseEntered(e -> deckEditorCardView[currentID % 8].setEffect(makeDropShadow(Color.BLUE, 60)));
                 deckEditorCardView[currentID % 8].setOnMouseExited(e -> deckEditorCardView[currentID % 8].setEffect(null));
+                deckEditorCardView[currentID % 8].setOnMouseClicked(e -> {
+                    
+                    int count = 0;
+
+                    for (Node image : cardBannerBox.getChildren())
+                        if (image instanceof ImageView)
+                        {
+                            count++;
+                            image.setId(Integer.toString(count));
+                        }
+
+                    if (count < 12)
+                    {
+                        ImageView banner = new ImageView(cardBanners[currentID]);
+                        banner.setOnMouseClicked(ev -> {
+                            int nodeID = 0;
+
+                            for (Node image : cardBannerBox.getChildren())
+                                if (image instanceof ImageView)
+                                {
+                                    image.setId(Integer.toString(nodeID));
+                                    nodeID++;
+                                }
+
+                            cardBannerBox.getChildren().remove(Integer.parseInt(banner.getId()));
+                        });
+
+                        cardBannerBox.getChildren().add(banner);
+                    }
+                });
+
+            currentIDChecked = currentID;
             }
         }
-    }
-    
+    }    
     /* Commented out at the moment since it was just for testing purposes
         // Set an event handler for mouse clicking on the card
         cardView.setOnMouseClicked(ev -> {
@@ -609,5 +650,4 @@ public class GenerateGraphics {
                 });
         });
         */
-
 }

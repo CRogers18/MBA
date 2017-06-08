@@ -84,7 +84,7 @@ public class Game {
             }
         }
         
-        System.out.println("[INFO] Card images successfully loaded");
+        System.out.println("[INFO] " + cardImages.length + " card images successfully loaded");
         return cardImages;
     }
     
@@ -92,18 +92,18 @@ public class Game {
     {
         Image[] cardBanners = new Image[monsterList.length];
         
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < monsterList.length; i++)
         {
             try
             {
-                cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".png", 260, 355, false, false);
+                cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".png", 460, 70, false, false);
             } catch (IllegalArgumentException err)
             {
                 cardBanners[i] = new Image("/ImageAssets/shark.jpg", 460, 70, false, false);
             }
         }
         
-        System.out.println("[INFO] Card banners successfully loaded");
+        System.out.println("[INFO] " + cardBanners.length + " card banners successfully loaded");
         return cardBanners;
     }
     
