@@ -21,6 +21,7 @@ public class Main extends Application {
     private final Player player = new Player();
     private Monster[] monsterList;
     private Image[] cardImages, cardBanners;
+    private boolean showRamStats = false;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -38,23 +39,26 @@ public class Main extends Application {
         cardImages = game.loadCardImages();
         cardBanners = game.loadCardBanners();
         
-        // RAM usage task
-        new Timer().schedule(new TimerTask() {
-            
-            long startTime = System.nanoTime();
-            
-            @Override
-            public void run()
-            {
-                long stopTime = System.nanoTime();
-                long delta_t = (stopTime - startTime)/1000000000;
-                System.gc();
-                Runtime rt = Runtime.getRuntime();
-                System.out.println("[" + delta_t + "s] Heap Space Used: " + ((rt.totalMemory() - rt.freeMemory())/1048576) + " MB" + 
-                                   "\t Total Heap Size: " + rt.totalMemory()/1048576 + " MB");
-            }
-            
-        }, 0, 1000);  
+        if (showRamStats)
+        {
+            // RAM usage task
+            new Timer().schedule(new TimerTask() {
+
+                long startTime = System.nanoTime();
+
+                @Override
+                public void run()
+                {
+                    long stopTime = System.nanoTime();
+                    long delta_t = (stopTime - startTime)/1000000000;
+                    System.gc();
+                    Runtime rt = Runtime.getRuntime();
+                    System.out.println("[" + delta_t + "s] Heap Space Used: " + ((rt.totalMemory() - rt.freeMemory())/1048576) + " MB" + 
+                                       "\t Total Heap Size: " + rt.totalMemory()/1048576 + " MB");
+                }
+
+            }, 0, 1000);
+        }
     }
     
     @Override

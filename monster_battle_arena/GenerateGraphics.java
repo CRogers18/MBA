@@ -1,6 +1,8 @@
 package monster_battle_arena;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,6 +24,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -42,11 +45,12 @@ public class GenerateGraphics {
     private ImageView[] deckEditorCardView;
     private final Stage mainStage;
     private Scene mainMenu, shopMenu, deckEditorMenu;
-    private VBox cardBannerBox;
+    private VBox cardBannerBox, customDeck1, customDeck2, customDeck3;
+    private String[] nodeIDSplit;
 
     private final Player player;
     private final Monster[] monsterList;
-    private int cardPacksOpened = 0, pageNumber = 1;
+    private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1;
     private boolean isMoving = false, bannerIsLoaded = false;
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
@@ -229,9 +233,9 @@ public class GenerateGraphics {
                  menu reload. This inefficiency will need to be addressed. */
         
         Group shopGroup = new Group();
-        Scene shopMenu = new Scene(shopGroup, 1920, 1080);
+        shopMenu = new Scene(shopGroup, 1920, 1080);
         
-        HBox shopBox = new HBox(100);
+        HBox shopBox = new HBox(100);   
         Image standard_card_pack = new Image("/ImageAssets/standard_card_pack.png", 220, 300, false, false);
         Image ultra_card_pack = new Image("/ImageAssets/ultra_card_pack.png", 220, 300, false, false);
                 
@@ -369,8 +373,10 @@ public class GenerateGraphics {
     private Scene createDeckEditorMenu()
     {
         deckEditGroup = new Group();
-        Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080); 
-        Image editor_bg = new Image("/ImageAssets/deckBuilder_bg.png");
+        Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080);
+        
+        // Using a different BG for the time being, might switch back
+        Image editor_bg = new Image("/ImageAssets/deckBuilderBG2.png");
             
         /* Deck editor has 8 spots to place cards, so make 8 
            containers to place the card images in. */
@@ -428,17 +434,75 @@ public class GenerateGraphics {
             }
         }
         
+        // Custom deck selection circles
+        Circle circle1 = new Circle(900, 960, 40);
+        Circle circle2 = new Circle(1050, 960, 40);
+        Circle circle3 = new Circle(1200, 960, 40);
+        circle1.setFill(Color.BLUE);
+        circle2.setFill(Color.BLUE);
+        circle3.setFill(Color.BLUE);
+        circle1.setEffect(makeDropShadow(Color.CYAN, 30));
+        
+        circle1.setOnMouseClicked(e -> {
+            selectedDeck = 1;
+            circle1.setEffect(makeDropShadow(Color.CYAN, 30));
+            circle2.setEffect(null);
+            circle3.setEffect(null);
+            
+            // When button is pressed, clear current cardBanner and re-build it
+            cardBannerBox.getChildren().clear();
+            for (Monster card : player.getCustomDeck1())
+            {
+                ImageView bannerImage = new ImageView(cardBanners[card.getMonsterID()]);
+                bannerImage.setId(Integer.toString(card.getMonsterID()));
+                bannerImage.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(bannerImage));
+                cardBannerBox.getChildren().add(bannerImage);
+            }    
+        });
+        
+        circle2.setOnMouseClicked(e -> {
+            selectedDeck = 2;
+            circle2.setEffect(makeDropShadow(Color.CYAN, 30));
+            circle1.setEffect(null);
+            circle3.setEffect(null);
+            
+            cardBannerBox.getChildren().clear();
+            for (Monster card : player.getCustomDeck2())
+            {
+                ImageView bannerImage = new ImageView(cardBanners[card.getMonsterID()]);
+                bannerImage.setId(Integer.toString(card.getMonsterID()));
+                bannerImage.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(bannerImage));
+                cardBannerBox.getChildren().add(bannerImage);
+            }  
+        });
+        
+        circle3.setOnMouseClicked(e -> {
+            selectedDeck = 3;
+            circle3.setEffect(makeDropShadow(Color.CYAN, 30));
+            circle1.setEffect(null);
+            circle2.setEffect(null);
+            
+            cardBannerBox.getChildren().clear();
+            for (Monster card : player.getCustomDeck3())
+            {
+                ImageView bannerImage = new ImageView(cardBanners[card.getMonsterID()]);
+                bannerImage.setId(Integer.toString(card.getMonsterID()));
+                bannerImage.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(bannerImage));
+                cardBannerBox.getChildren().add(bannerImage);
+            }
+        });
+        
         Button pageForward = makeButton("Page " + (pageNumber + 1), "#00ffff", "#0d5cdb", 25, 200);
         pageForward.setOnMouseEntered(e -> pageForward.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         pageForward.setOnMouseExited(e -> pageForward.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         pageForward.setEffect(makeDropShadow(Color.BLUE, 40));
-        pageForward.relocate(900, 920);
+        pageForward.relocate(500, 920);
         
         Button pageBack = makeButton("Page " + (pageNumber - 1), "#00ffff", "#0d5cdb", 25, 200);
         pageBack.setOnMouseEntered(e -> pageBack.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         pageBack.setOnMouseExited(e -> pageBack.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         pageBack.setEffect(makeDropShadow(Color.BLUE, 40));
-        pageBack.relocate(500, 920);
+        pageBack.relocate(100, 920);
         pageBack.setDisable(true);
         pageBack.setText("");
 
@@ -499,12 +563,55 @@ public class GenerateGraphics {
             pageForward.setDisable(false);
             pageBack.setText("");
             pageBack.setDisable(true);
+            
+            if (selectedDeck == 1)
+            {
+                ArrayList <Monster> customDeck1 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck1.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck1(customDeck1);
+                
+                System.out.print("Custom deck 1: ");
+                for (Monster card : player.getCustomDeck1())
+                    System.out.print(card.getMonsterID() + " ");
+            }
+            
+            if (selectedDeck == 2)
+            {
+                ArrayList <Monster> customDeck2 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck2.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck2(customDeck2);
+                
+                System.out.print("Custom deck 2: ");
+                for (Monster card : player.getCustomDeck2())
+                    System.out.print(card.getMonsterID() + " ");
+            }
+            
+            if (selectedDeck == 3)
+            {
+                ArrayList <Monster> customDeck3 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck3.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck3(customDeck3);
+                
+                System.out.print("Custom deck 3: ");
+                for (Monster card : player.getCustomDeck3())
+                    System.out.print(card.getMonsterID() + " ");
+            }
+            
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
 
         // Add new assets
-        deckEditGroup.getChildren().addAll(editorBgView, cardBannerBox, backBtn, pageForward, pageBack);
+        deckEditGroup.getChildren().addAll(editorBgView, cardBannerBox, backBtn, pageForward, pageBack, circle1, circle2, circle3);
         deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
@@ -530,7 +637,7 @@ public class GenerateGraphics {
 
             deckEditorCardView[i].setImage(cardImages[cardCheck]);
             
-            // Clear the mouse entered and exited event handlers
+            // Clear the mouse entered, exited, and clicked event handlers
             deckEditorCardView[i].setOnMouseEntered(e -> {});
             deckEditorCardView[i].setOnMouseExited(e -> {});
             deckEditorCardView[i].setOnMouseClicked(e -> {});
@@ -590,27 +697,17 @@ public class GenerateGraphics {
 
                     for (Node image : cardBannerBox.getChildren())
                         if (image instanceof ImageView)
-                        {
                             count++;
-                            image.setId(Integer.toString(count));
-                        }
-
+                    
+                    // needed to catch and handle duplicate cards in side menu
+                    // if (currentID == Integer.parseInt(image.getId()))
+                                
                     if (count < 12)
                     {
                         ImageView banner = new ImageView(cardBanners[currentID]);
-                        banner.setOnMouseClicked(ev -> {
-                            int nodeID = 0;
-
-                            for (Node image : cardBannerBox.getChildren())
-                                if (image instanceof ImageView)
-                                {
-                                    image.setId(Integer.toString(nodeID));
-                                    nodeID++;
-                                }
-
-                            cardBannerBox.getChildren().remove(Integer.parseInt(banner.getId()));
-                        });
-
+                        banner.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(banner));
+                        banner.setId(Integer.toString(currentID));
+                        System.out.println("Banner created with ID " + banner.getId());
                         cardBannerBox.getChildren().add(banner);
                     }
                 });
