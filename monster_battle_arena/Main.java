@@ -16,7 +16,7 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private final String version = "0.09";
+    private final String version = "0.12";
     private final Game game = new Game();
     private final Player player = new Player();
     private Monster[] monsterList;

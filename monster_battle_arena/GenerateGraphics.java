@@ -52,7 +52,7 @@ public class GenerateGraphics {
     private final Player player;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1;
-    private boolean isMoving = false, bannerIsLoaded = false, inText = false;
+    private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false;
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
     {
@@ -247,20 +247,20 @@ public class GenerateGraphics {
         playText.setFill(Color.CYAN);
         playText.setStroke(Color.BLUE);
         playText.setVisible(false);
-        playText.setOnMouseEntered(ev -> { inText = true; System.out.println("[IN] inText = " + inText);});
-        playText.setOnMouseExited(ev -> { inText = false; System.out.println("[OUT] inText = " + inText);});
         
         playBtns = new ImageView[3];
         
-        // TODO: BUG in this loop in the code, causes flickering of effect on
-        // image within ImageView when mouse enters text
+        DropShadow ds = new DropShadow();
+        ds.setColor(Color.AQUA);
+        ds.setRadius(40);
+        
         for (int i = 0; i < 3; i++)
         {
             final int index = i;
             Image btn = new Image("/ImageAssets/PlayMenu/play_" + i + ".jpg", 400, 400, false, false);
             playBtns[i] = new ImageView(btn);
             // TODO: Look further into chaining effects with setInput() method
-            playBtns[i].setEffect(makeDropShadow(Color.CYAN, 40));
+            playBtns[i].setEffect(makeDropShadow(Color.AQUA, 40));
             playBtns[i].setOnMouseEntered(e -> {
                 
                 // Create a new timer task to run
@@ -269,6 +269,8 @@ public class GenerateGraphics {
                     // This task will apply a small fade effect to the image
                     // within the ImageView, so make a variable to track darkness
                     double brightnessVal = 0;
+                    boolean textSet = false;
+                    
                     @Override
                     public void run()
                     {
@@ -278,29 +280,35 @@ public class GenerateGraphics {
                             brightnessVal -= 0.05;
                             ColorAdjust darken = new ColorAdjust();
                             darken.setBrightness(brightnessVal);
+                            darken.setInput(ds);
                             playBtns[index].setEffect(darken);
                         }
                         
-                        // Likely needs optimization here, un-needed calls to
-                        // relocate and change the text on the picture
+                        // textSet flag only allows a single call to relocate
+                        // and setText methods rather than many as was before
                         else
                         {
-                            switch (index)
+                            if (!textSet)
                             {
-                                case 0:
-                                    playText.relocate(290, 150);
-                                    playText.setText("   Play\nCampaign");
-                                    break;
-                                case 1:
-                                    playText.relocate(750, 150);
-                                    playText.setText("     Play\nTournament");
-                                    break;
-                                case 2:
-                                    playText.relocate(1310, 150);
-                                    playText.setText("  Play\nCustom");
-                                    break;
+                                switch (index)
+                                {
+                                    case 0:
+                                        playText.relocate(290, 150);
+                                        playText.setText("   Play\nCampaign");
+                                        break;
+                                    case 1:
+                                        playText.relocate(750, 150);
+                                        playText.setText("     Play\nTournament");
+                                        break;
+                                    case 2:
+                                        playText.relocate(1310, 150);
+                                        playText.setText("  Play\nCustom");
+                                        break;
+                                }
+                                textSet = true;
+                                playText.setDisable(true);
+                                playText.setVisible(true);
                             }
-                            playText.setVisible(true);
                         }    
                     }
                 };
@@ -308,22 +316,48 @@ public class GenerateGraphics {
                 // When the mouse exits the image, set effect back to normal and
                 // cancel the fadeEffect timer task
                 playBtns[index].setOnMouseExited(ev -> {
-
-                    if (!inText)
+                    
+                    playBtns[index].setEffect(makeDropShadow(Color.CYAN, 40));
+                    playText.setVisible(false);
+                    fadeEffect.cancel();
+                });
+                
+                // WIP listener for different images being clicked
+                playBtns[index].setOnMouseClicked(ev -> {
+                    
+                    playBtnisClicked = true;
+                    
+                    switch (index)
                     {
-                        playBtns[index].setEffect(makeDropShadow(Color.CYAN, 40));
-                        playText.setVisible(false);
-                        fadeEffect.cancel();
+                        // Campaign mode
+                        case 0:
+                            break;
+                        
+                        // Tournament mode
+                        case 1:
+                            break;
+                        
+                        // Custom mode
+                        case 2:
+                            // Make buttons to select custom deck, add new nodes
+                            // to playMenuGroup, remove them if another mode is
+                            // selected
+                            ds.setColor(Color.YELLOW);
+                            
+                            break;
+                            
+                        default:
+                            System.out.println("[ERROR] index: " + index + " not found!");
+                            break;
                     }
+                    
                 });
                 
                 // Schedule task to run every 15 ms
                 timer.schedule(fadeEffect, 15, 15);
             });
         }
-        
-        // END bug section
-        
+                
         HBox box = new HBox(100);
         box.getChildren().addAll(playBtns);
         box.setPadding(new Insets(100, 200, 100, 200));
