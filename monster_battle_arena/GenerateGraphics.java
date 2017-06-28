@@ -2,7 +2,8 @@ package monster_battle_arena;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -38,20 +39,20 @@ import javafx.util.Duration;
 public class GenerateGraphics {
     
     // Class for quickly generating graphical interface elements
+    Timer timer = new Timer();
     
     private Group root, deckEditGroup;
     private MediaPlayer vidPlayer;
     private final Image[] cardImages, cardBanners;
-    private ImageView[] deckEditorCardView;
+    private ImageView[] deckEditorCardView, playBtns;
     private final Stage mainStage;
-    private Scene mainMenu, shopMenu, deckEditorMenu;
-    private VBox cardBannerBox, customDeck1, customDeck2, customDeck3;
-    private String[] nodeIDSplit;
+    private Scene mainMenu, shopMenu, deckEditorMenu, playMenu;
+    private VBox cardBannerBox;
 
     private final Player player;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1;
-    private boolean isMoving = false, bannerIsLoaded = false;
+    private boolean isMoving = false, bannerIsLoaded = false, inText = false;
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
     {
@@ -172,6 +173,18 @@ public class GenerateGraphics {
         editorBtn.setOnMouseExited(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         editorBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         
+        shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        
+        final Scene playMenuInit = createPlayMenu();
+        playMenu = playMenuInit;
+        
+        playBtn.setOnAction(e -> {
+            mainStage.setScene(playMenu);
+            vidPlayer.stop();
+        });
+        
         final Scene deckEditorMenuInit = createDeckEditorMenu();
         deckEditorMenu = deckEditorMenuInit;
         
@@ -182,13 +195,8 @@ public class GenerateGraphics {
             vidPlayer.stop();
         });
         
-        // Re-look over this, might not be needed
         final Scene shopMenuInit = createShopMenu();
         shopMenu = shopMenuInit;
-
-        shopBtn.setOnMouseEntered(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
-        shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
-        shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         
         shopBtn.setOnAction(e -> {
             mainStage.setScene(shopMenu);
@@ -225,6 +233,113 @@ public class GenerateGraphics {
         audioPlayer.play();
                 
         return mainMenu;
+    }
+    
+    private Scene createPlayMenu()
+    {
+        Group playMenuGroup = new Group();
+        playMenu = new Scene(playMenuGroup, 1920, 1080);
+        
+        Image play_bg = new Image("/ImageAssets/play_bg.png", 1920, 1080, false, false);
+        ImageView play_menu_bg = new ImageView(play_bg);
+        
+        Text playText = makeText("Play", "", 60);
+        playText.setFill(Color.CYAN);
+        playText.setStroke(Color.BLUE);
+        playText.setVisible(false);
+        playText.setOnMouseEntered(ev -> { inText = true; System.out.println("[IN] inText = " + inText);});
+        playText.setOnMouseExited(ev -> { inText = false; System.out.println("[OUT] inText = " + inText);});
+        
+        playBtns = new ImageView[3];
+        
+        // TODO: BUG in this loop in the code, causes flickering of effect on
+        // image within ImageView when mouse enters text
+        for (int i = 0; i < 3; i++)
+        {
+            final int index = i;
+            Image btn = new Image("/ImageAssets/PlayMenu/play_" + i + ".jpg", 400, 400, false, false);
+            playBtns[i] = new ImageView(btn);
+            // TODO: Look further into chaining effects with setInput() method
+            playBtns[i].setEffect(makeDropShadow(Color.CYAN, 40));
+            playBtns[i].setOnMouseEntered(e -> {
+                
+                // Create a new timer task to run
+                TimerTask fadeEffect = new TimerTask()
+                {
+                    // This task will apply a small fade effect to the image
+                    // within the ImageView, so make a variable to track darkness
+                    double brightnessVal = 0;
+                    @Override
+                    public void run()
+                    {
+                        // If below a certain threshold, continue to darken image
+                        if (brightnessVal > -0.65)
+                        {
+                            brightnessVal -= 0.05;
+                            ColorAdjust darken = new ColorAdjust();
+                            darken.setBrightness(brightnessVal);
+                            playBtns[index].setEffect(darken);
+                        }
+                        
+                        // Likely needs optimization here, un-needed calls to
+                        // relocate and change the text on the picture
+                        else
+                        {
+                            switch (index)
+                            {
+                                case 0:
+                                    playText.relocate(290, 150);
+                                    playText.setText("   Play\nCampaign");
+                                    break;
+                                case 1:
+                                    playText.relocate(750, 150);
+                                    playText.setText("     Play\nTournament");
+                                    break;
+                                case 2:
+                                    playText.relocate(1310, 150);
+                                    playText.setText("  Play\nCustom");
+                                    break;
+                            }
+                            playText.setVisible(true);
+                        }    
+                    }
+                };
+                
+                // When the mouse exits the image, set effect back to normal and
+                // cancel the fadeEffect timer task
+                playBtns[index].setOnMouseExited(ev -> {
+
+                    if (!inText)
+                    {
+                        playBtns[index].setEffect(makeDropShadow(Color.CYAN, 40));
+                        playText.setVisible(false);
+                        fadeEffect.cancel();
+                    }
+                });
+                
+                // Schedule task to run every 15 ms
+                timer.schedule(fadeEffect, 15, 15);
+            });
+        }
+        
+        // END bug section
+        
+        HBox box = new HBox(100);
+        box.getChildren().addAll(playBtns);
+        box.setPadding(new Insets(100, 200, 100, 200));
+        
+        Button backBtn = makeButton("Back", "#00ffff", "#0d5cdb", 25, 200);
+        backBtn.relocate(760, 900);
+        backBtn.setOnMouseEntered(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        backBtn.setOnMouseExited(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        backBtn.setOnAction(ev -> {
+            mainStage.setScene(mainMenu);
+            vidPlayer.play();
+        });
+        
+        playMenuGroup.getChildren().addAll(play_menu_bg, box, backBtn, playText);
+        
+        return playMenu;
     }
     
     private Scene createShopMenu()
@@ -384,7 +499,8 @@ public class GenerateGraphics {
         ImageView editorBgView = new ImageView(editor_bg);
         editorBgView.setId("Background_Image");
         
-        // Container to hold card banners on right side of screen
+        // Container to hold card banners on right side of screen, uses  
+        // 5 px of spacing between nodes in the vbox
         cardBannerBox = makeVerticalBox(5);
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
@@ -396,7 +512,7 @@ public class GenerateGraphics {
 
         for (int i = 0; i < 8; i++)
         {
-            // For the first 8 card images, set the ImageView to display the image
+            // Initialize each index of the ImageView array and apply darken effect
             if (i < 8)
             {
                 ColorAdjust darken = new ColorAdjust();
@@ -434,7 +550,7 @@ public class GenerateGraphics {
             }
         }
         
-        // Custom deck selection circles
+        // Custom deck selection circles (coord x, coord y, radius)
         Circle circle1 = new Circle(900, 960, 40);
         Circle circle2 = new Circle(1050, 960, 40);
         Circle circle3 = new Circle(1200, 960, 40);
@@ -444,6 +560,9 @@ public class GenerateGraphics {
         circle1.setEffect(makeDropShadow(Color.CYAN, 30));
         
         circle1.setOnMouseClicked(e -> {
+            
+            saveCurrentDeck(selectedDeck);
+            
             selectedDeck = 1;
             circle1.setEffect(makeDropShadow(Color.CYAN, 30));
             circle2.setEffect(null);
@@ -461,6 +580,9 @@ public class GenerateGraphics {
         });
         
         circle2.setOnMouseClicked(e -> {
+            
+            saveCurrentDeck(selectedDeck);
+            
             selectedDeck = 2;
             circle2.setEffect(makeDropShadow(Color.CYAN, 30));
             circle1.setEffect(null);
@@ -477,6 +599,11 @@ public class GenerateGraphics {
         });
         
         circle3.setOnMouseClicked(e -> {
+            
+            // get current selected deck and save it first
+            saveCurrentDeck(selectedDeck);
+            
+            // then modify the selected deck and clear the cardBannerBox
             selectedDeck = 3;
             circle3.setEffect(makeDropShadow(Color.CYAN, 30));
             circle1.setEffect(null);
@@ -552,7 +679,6 @@ public class GenerateGraphics {
 
         Button backBtn = makeButton("Save and Exit", "#00ffff", "#0d5cdb", 25, 300);
         backBtn.relocate(1540, 950);
-        
         backBtn.setOnMouseEntered(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         backBtn.setOnMouseExited(e -> backBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
@@ -564,60 +690,18 @@ public class GenerateGraphics {
             pageBack.setText("");
             pageBack.setDisable(true);
             
-            if (selectedDeck == 1)
-            {
-                ArrayList <Monster> customDeck1 = new ArrayList <>();
-                for (Node card : cardBannerBox.getChildren())
-                    if (card instanceof ImageView)
-                        customDeck1.add(monsterList[Integer.parseInt(card.getId())]);
-                
-                player.setCustomDeck1(customDeck1);
-                
-                System.out.print("Custom deck 1: ");
-                for (Monster card : player.getCustomDeck1())
-                    System.out.print(card.getMonsterID() + " ");
-            }
-            
-            if (selectedDeck == 2)
-            {
-                ArrayList <Monster> customDeck2 = new ArrayList <>();
-                for (Node card : cardBannerBox.getChildren())
-                    if (card instanceof ImageView)
-                        customDeck2.add(monsterList[Integer.parseInt(card.getId())]);
-                
-                player.setCustomDeck2(customDeck2);
-                
-                System.out.print("Custom deck 2: ");
-                for (Monster card : player.getCustomDeck2())
-                    System.out.print(card.getMonsterID() + " ");
-            }
-            
-            if (selectedDeck == 3)
-            {
-                ArrayList <Monster> customDeck3 = new ArrayList <>();
-                for (Node card : cardBannerBox.getChildren())
-                    if (card instanceof ImageView)
-                        customDeck3.add(monsterList[Integer.parseInt(card.getId())]);
-                
-                player.setCustomDeck3(customDeck3);
-                
-                System.out.print("Custom deck 3: ");
-                for (Monster card : player.getCustomDeck3())
-                    System.out.print(card.getMonsterID() + " ");
-            }
-            
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
 
-        // Add new assets
+        // Add new assets to the scene's group and return the finished scene
         deckEditGroup.getChildren().addAll(editorBgView, cardBannerBox, backBtn, pageForward, pageBack, circle1, circle2, circle3);
         deckEditGroup.getChildren().addAll(deckEditorCardView);
         
         return deckEditorScene;
     }
     
-    // OPTIMIZE ME PLEASE, HEFTY PERFORMANCE COSTS IN THIS METHOD //
+    // FURTHER OPTIMIZATIONS MAY EXIST IN THIS METHOD //
     private void updateDeckEditorCards()
     {
         // Page-dependent card ID calculations
@@ -628,6 +712,7 @@ public class GenerateGraphics {
         if (pageNumber <= 0)
             pageNumber = 1;
         
+        // cardCheck is the ID of the top-left card on the deck editor page
         int imageSpacing = 105, graphicErrorSpacing = 2, cardCheck = lower;
         
         for (int i = 0; i < 8; i++)
@@ -673,18 +758,27 @@ public class GenerateGraphics {
             cardCheck++;
         }
         
+        // Loop to check player's card pool against the current page of the deck editor
         int currentIDChecked = 0;
-        // i needs to be the calculated lower bound and for i < x, x needs to be the calculated upper bound
         for (int i = 0; i < player.getCardPool().size(); i++)
         {
             int currentID = player.getCardPool().get(i).getMonsterID();
             
-            // Small optimization for skipping previously checked cards, WIP right now
+            // Optimization for skipping previously checked cards and cards outside
+            // the range of cards on the current page of the deck editor
+            if (currentID < lower)
+                continue;
+            
+            if (currentID > upper)
+                break;
+            
             if (currentIDChecked == currentID && currentID > 0)
                 continue;
             
+            /*  Un-comment if debugging this loop
             System.out.println("[INFO] Checking for monsterID: " + currentID + " on page " + pageNumber
                    + " between range " + lower + " -> " + upper);
+            */
             
             if (currentID >= lower && currentID <= upper)
             {
@@ -699,7 +793,7 @@ public class GenerateGraphics {
                         if (image instanceof ImageView)
                             count++;
                     
-                    // needed to catch and handle duplicate cards in side menu
+                    // TO-DO: needed to catch and handle duplicate cards in side menu
                     // if (currentID == Integer.parseInt(image.getId()))
                                 
                     if (count < 12)
@@ -707,7 +801,8 @@ public class GenerateGraphics {
                         ImageView banner = new ImageView(cardBanners[currentID]);
                         banner.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(banner));
                         banner.setId(Integer.toString(currentID));
-                        System.out.println("Banner created with ID " + banner.getId());
+                    //  Un-comment to debug card banner creation
+                    //  System.out.println("Banner created with ID " + banner.getId());
                         cardBannerBox.getChildren().add(banner);
                     }
                 });
@@ -715,7 +810,8 @@ public class GenerateGraphics {
             currentIDChecked = currentID;
             }
         }
-    }    
+    }
+    
     /* Commented out at the moment since it was just for testing purposes
         // Set an event handler for mouse clicking on the card
         cardView.setOnMouseClicked(ev -> {
@@ -747,4 +843,47 @@ public class GenerateGraphics {
                 });
         });
         */
+
+    private void saveCurrentDeck(int selectedDeck)
+    {
+        switch (selectedDeck)
+        {
+            case 1:
+                
+                ArrayList <Monster> customDeck1 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck1.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck1(customDeck1);
+                
+                break;
+            
+            case 2:
+                
+                ArrayList <Monster> customDeck2 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck2.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck2(customDeck2);
+                
+                break;
+                
+            case 3:
+                
+                ArrayList <Monster> customDeck3 = new ArrayList <>();
+                for (Node card : cardBannerBox.getChildren())
+                    if (card instanceof ImageView)
+                        customDeck3.add(monsterList[Integer.parseInt(card.getId())]);
+                
+                player.setCustomDeck3(customDeck3);
+                
+                break;
+                
+            default:
+                System.out.println("[ERROR] Selected deck not valid!");
+                break;
+        }
+    }
 }

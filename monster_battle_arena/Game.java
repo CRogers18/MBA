@@ -32,6 +32,7 @@ public class Game {
         // Loop to read a line from the text file and create a monster from the extracted data
         for (int i = 0; i < monsterList.length; i++)
         {
+            // NOTE: convertedData[4] may be used later for ability to taunt
             monsterData[i] = br.readLine();
             String[] convertedData = monsterData[i].split(" ");
             String monsterName = convertedData[0];

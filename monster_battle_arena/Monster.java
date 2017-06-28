@@ -9,7 +9,9 @@ class Monster {
     private int monsterID;
     private int hitpoints, strength, defense, energyRequired, rarity;
     private String monsterName;
-    private boolean willTaunt;
+    
+    // Un-used variable that may be removed at a later date
+    private boolean canTaunt;
     
     public Monster initMonster(int monsterID, String monsterName, int hitpoints, int strength, int defense, int energyRequired, int rarity)
     {

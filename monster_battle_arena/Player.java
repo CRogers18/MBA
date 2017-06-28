@@ -12,6 +12,8 @@ public class Player {
     private int gemBalance = Integer.MAX_VALUE;
     private ArrayList <Monster> cardPool = new ArrayList <>();
     private ArrayList <Monster> customDeck1 = new ArrayList <> (), customDeck2 = new ArrayList <> (), customDeck3 = new ArrayList <> ();
+    
+    // May be used at a later date, for now it is un-used
     private String[] customDeckNames = new String[3];
     
     public String getName()
@@ -86,6 +88,8 @@ public class Player {
 
     public void sortCardPool(ArrayList <Monster> unsortedCardPool, Monster[] monsterList)
     {
+        // WARNING: array is HARD-CODED for size of 40, will need to be replaced
+        // with a VARIABLE array size when the total card pool goes beyond 40 cards
         int[] cardCounts = new int[40];
         ArrayList <Monster> orderedPool = new ArrayList <>();
         
@@ -102,7 +106,7 @@ public class Player {
         
         this.cardPool = orderedPool;
         
-        /*
+        /* Un-comment if debugging this loop
         for (Monster card : cardPool)
             System.out.println("CardID: " + card.getMonsterID());
         */
