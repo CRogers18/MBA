@@ -78,7 +78,7 @@ public class Game {
         {
             try
             {
-                cardImages[i] = new Image("/ImageAssets/Cards/card" + i + ".png", 260, 355, false, false);
+                cardImages[i] = new Image("/ImageAssets/Cards/card_" + i + ".png", 260, 355, false, false);
             } catch (IllegalArgumentException err)
             {
                 cardImages[i] = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);

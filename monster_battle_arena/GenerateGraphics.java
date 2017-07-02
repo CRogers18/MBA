@@ -41,18 +41,19 @@ public class GenerateGraphics {
     // Class for quickly generating graphical interface elements
     Timer timer = new Timer();
     
-    private Group root, deckEditGroup;
+    private Group root, deckEditGroup, arenaGroup;
     private MediaPlayer vidPlayer;
     private final Image[] cardImages, cardBanners;
     private ImageView[] deckEditorCardView, playBtns;
     private final Stage mainStage;
-    private Scene mainMenu, shopMenu, deckEditorMenu, playMenu;
+    private Scene mainMenu, shopMenu, deckEditorMenu, playMenu, arenaUI;
     private VBox cardBannerBox;
 
     private final Player player;
     private final Monster[] monsterList;
-    private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1;
+    private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy;
     private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false;
+    private Text playerGemCount;
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
     {
@@ -177,6 +178,9 @@ public class GenerateGraphics {
         shopBtn.setOnMouseExited(e -> shopBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         shopBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         
+        final Scene arenaInit = createArenaUI();
+        arenaUI = arenaInit;
+        
         final Scene playMenuInit = createPlayMenu();
         playMenu = playMenuInit;
         
@@ -199,6 +203,7 @@ public class GenerateGraphics {
         shopMenu = shopMenuInit;
         
         shopBtn.setOnAction(e -> {
+            playerGemCount.setText(Integer.toString(player.getGemBalance()));
             mainStage.setScene(shopMenu);
             vidPlayer.stop();
         });
@@ -266,6 +271,7 @@ public class GenerateGraphics {
                 // Create a new timer task to run
                 TimerTask fadeEffect = new TimerTask()
                 {
+                    
                     // This task will apply a small fade effect to the image
                     // within the ImageView, so make a variable to track darkness
                     double brightnessVal = 0;
@@ -283,7 +289,7 @@ public class GenerateGraphics {
                             darken.setInput(ds);
                             playBtns[index].setEffect(darken);
                         }
-                        
+
                         // textSet flag only allows a single call to relocate
                         // and setText methods rather than many as was before
                         else
@@ -313,28 +319,47 @@ public class GenerateGraphics {
                     }
                 };
                 
+                // Schedule task to run every 15 ms
+                timer.schedule(fadeEffect, 15, 15);
+                
+                if (playBtnisClicked && clickedBy != index)
+                {
+                    playBtnisClicked = false;
+                //    System.out.println("Cancelling effect");
+                    playBtns[clickedBy].setEffect(makeDropShadow(Color.CYAN, 40));
+                    playText.setVisible(false);
+                    fadeEffect.cancel();
+                }
+
                 // When the mouse exits the image, set effect back to normal and
                 // cancel the fadeEffect timer task
                 playBtns[index].setOnMouseExited(ev -> {
-                    
-                    playBtns[index].setEffect(makeDropShadow(Color.CYAN, 40));
-                    playText.setVisible(false);
-                    fadeEffect.cancel();
+                //    System.out.println("pbic: " + playBtnisClicked);
+                    if (playBtnisClicked == false)
+                    {
+                        playBtns[index].setEffect(makeDropShadow(Color.CYAN, 40));
+                        playText.setVisible(false);
+                        fadeEffect.cancel();
+                    }
                 });
-                
+
                 // WIP listener for different images being clicked
                 playBtns[index].setOnMouseClicked(ev -> {
-                    
-                    playBtnisClicked = true;
-                    
+                                        
                     switch (index)
                     {
                         // Campaign mode
                         case 0:
+                            playBtnisClicked = true;
+                            clickedBy = 0;
+                        //    ds.setColor(Color.YELLOW);
                             break;
                         
                         // Tournament mode
                         case 1:
+                            playBtnisClicked = true;
+                            clickedBy = 1;
+                        //    ds.setColor(Color.YELLOW);
                             break;
                         
                         // Custom mode
@@ -342,8 +367,16 @@ public class GenerateGraphics {
                             // Make buttons to select custom deck, add new nodes
                             // to playMenuGroup, remove them if another mode is
                             // selected
-                            ds.setColor(Color.YELLOW);
+                            playBtnisClicked = true;
+                            clickedBy = 2;
                             
+                            // Scene swap should happen here
+                            
+                            
+                            // playMenu should be swapped with scene for arena
+                            mainStage.setScene(arenaUI);
+                            Arena gameArena = new Arena(player, monsterList, arenaGroup);
+                        //    ds.setColor(Color.YELLOW);
                             break;
                             
                         default:
@@ -353,8 +386,6 @@ public class GenerateGraphics {
                     
                 });
                 
-                // Schedule task to run every 15 ms
-                timer.schedule(fadeEffect, 15, 15);
             });
         }
                 
@@ -417,7 +448,7 @@ public class GenerateGraphics {
         Image gemIcon = new Image("/ImageAssets/gem_currency.png", 40, 40, false, false);
         ImageView gemView1 = new ImageView(gemIcon);
         String gemCount = Integer.toString(player.getGemBalance());
-        Text playerGemCount = new Text(gemCount);
+        playerGemCount = new Text(gemCount);
         playerGemCount.setFill(Color.WHITE);
         playerGemCount.setFont(Font.font("Serif", FontWeight.BOLD, 30));
         playerGemBox.getChildren().addAll(playerGemCount, gemView1);
@@ -718,6 +749,9 @@ public class GenerateGraphics {
         backBtn.setEffect(makeDropShadow(Color.BLUE, 40));
 
         backBtn.setOnAction(ev -> {
+            
+            saveCurrentDeck(selectedDeck);
+            
             pageNumber = 1;
             pageForward.setText("Page " + (pageNumber + 1));
             pageForward.setDisable(false);
@@ -919,5 +953,35 @@ public class GenerateGraphics {
                 System.out.println("[ERROR] Selected deck not valid!");
                 break;
         }
+    }
+
+    private Scene createArenaUI()
+    {
+        arenaGroup = new Group();
+        Scene arenaUI = new Scene(arenaGroup, 1920, 1080);
+        
+        Image arena_bg = new Image("/ImageAssets/mba_arena.png");
+        ImageView arenaBgView = new ImageView(arena_bg);
+        
+        // NOTE: new Insets (top, right, bottom, left) spacing is in pixels
+        
+        // Make 2 containers for card images to be placed in
+        HBox playerField = new HBox(50);
+        playerField.setPadding(new Insets(0, 300, 0, 300));
+        playerField.relocate(226, 591);
+        
+        HBox botField = new HBox(50);
+        botField.setPadding(new Insets(0, 300, 0, 300));
+        botField.relocate(226, 152);
+        botField.setOnMouseClicked(e -> { mainStage.setScene(mainMenu); vidPlayer.play(); });
+        
+        // Box to display player cards in hand
+        HBox playerHand = new HBox(20);
+        playerHand.setPadding(new Insets(50, 300, 0, 300));
+        playerHand.relocate(381, 979);
+        
+        arenaGroup.getChildren().addAll(arenaBgView, playerField, botField, playerHand);
+        
+        return arenaUI;
     }
 }

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Player {
     
     private String name;
-    private int gemBalance = Integer.MAX_VALUE;
+    private int gemBalance = 0, gameHealth;
     private ArrayList <Monster> cardPool = new ArrayList <>();
     private ArrayList <Monster> customDeck1 = new ArrayList <> (), customDeck2 = new ArrayList <> (), customDeck3 = new ArrayList <> ();
     
@@ -34,6 +34,16 @@ public class Player {
     public void setGemBalance(int gemBalance)
     {
         this.gemBalance = gemBalance;
+    }
+    
+    public int getGameHealth()
+    {
+        return gameHealth;
+    }
+
+    public void setGameHealth(int gameHealth)
+    {
+        this.gameHealth = gameHealth;
     }
     
     public ArrayList<Monster> getCardPool()
