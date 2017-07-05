@@ -259,6 +259,16 @@ public class GenerateGraphics {
         ds.setColor(Color.AQUA);
         ds.setRadius(40);
         
+        Text descriptionBox = new Text("");
+        descriptionBox.setFill(Color.BLUE);
+        descriptionBox.relocate(60, 550);
+        // creates the backdrop                      
+        Rectangle backdrop = new Rectangle();
+        backdrop.relocate(60, 550);
+        backdrop.setWidth(1800);
+        backdrop.setHeight(325);
+        backdrop.setOpacity(0.25);
+        
         for (int i = 0; i < 3; i++)
         {
             final int index = i;
@@ -318,7 +328,7 @@ public class GenerateGraphics {
                         }    
                     }
                 };
-                
+
                 // Schedule task to run every 15 ms
                 timer.schedule(fadeEffect, 15, 15);
                 
@@ -342,10 +352,10 @@ public class GenerateGraphics {
                         fadeEffect.cancel();
                     }
                 });
-
+           
                 // WIP listener for different images being clicked
                 playBtns[index].setOnMouseClicked(ev -> {
-                                        
+                 
                     switch (index)
                     {
                         // Campaign mode
@@ -353,6 +363,7 @@ public class GenerateGraphics {
                             playBtnisClicked = true;
                             clickedBy = 0;
                         //    ds.setColor(Color.YELLOW);
+                            descriptionBox.setText("Enter Campaign description here");
                             break;
                         
                         // Tournament mode
@@ -360,6 +371,7 @@ public class GenerateGraphics {
                             playBtnisClicked = true;
                             clickedBy = 1;
                         //    ds.setColor(Color.YELLOW);
+                            descriptionBox.setText("Enter Tournament description here");
                             break;
                         
                         // Custom mode
@@ -377,6 +389,7 @@ public class GenerateGraphics {
                             mainStage.setScene(arenaUI);
                             Arena gameArena = new Arena(player, monsterList, arenaGroup);
                         //    ds.setColor(Color.YELLOW);
+                            descriptionBox.setText("Enter Custom description here");
                             break;
                             
                         default:
@@ -402,7 +415,7 @@ public class GenerateGraphics {
             vidPlayer.play();
         });
         
-        playMenuGroup.getChildren().addAll(play_menu_bg, box, backBtn, playText);
+        playMenuGroup.getChildren().addAll(play_menu_bg, box, backBtn, playText, backdrop, descriptionBox);
         
         return playMenu;
     }
