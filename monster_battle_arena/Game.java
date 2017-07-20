@@ -1,10 +1,13 @@
 package monster_battle_arena;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Scanner;
 import javafx.scene.image.Image;
 
 /*
@@ -13,7 +16,8 @@ import javafx.scene.image.Image;
 public class Game {
     
     private Monster[] monsterList = new Monster[40];
-    
+    private File playerData = new File("playerData.txt");
+
     public void initGame(Player player) throws IOException, FileNotFoundException
     {
         // Array will contain monster data extracted from the text file as strings
@@ -60,12 +64,98 @@ public class Game {
         }
         */
         
-        // Will need to include a check for player data at some point here
-        System.out.println("[INFO] Player data not found, creating new player data");
-        player.setName("Bob");
-        
-        // Default adds card 7 to the player's card pool for testing purposes
-        player.getCardPool().add(monsterList[7]);
+        // Player data loader
+        try
+        {
+            Scanner scan = new Scanner(playerData);
+            
+            while (scan.hasNextLine())
+            {
+                String[] data = scan.nextLine().split(" ");
+                
+                switch(data[0])
+                {
+                    case "deck1:":
+                    {
+                        // Build custom deck 1
+                        ArrayList <Monster> deck1 = new ArrayList<>();
+                        
+                        for (int i = 1; i < data.length; i++)
+                            deck1.add(monsterList[Integer.parseInt(data[i])]);
+                        
+                        player.setCustomDeck1(deck1);
+                        System.out.println("[INFO] Custom deck 1 loaded successfully");
+                        break;
+                    }
+                    
+                    case "deck2:":
+                    {
+                        // Build custom deck 2
+                        ArrayList <Monster> deck2 = new ArrayList<>();
+                        
+                        for (int i = 1; i < data.length; i++)
+                            deck2.add(monsterList[Integer.parseInt(data[i])]);
+                        
+                        player.setCustomDeck2(deck2);
+                        System.out.println("[INFO] Custom deck 2 loaded successfully");
+                        break;
+                    }
+                    
+                    case "deck3:":
+                    {
+                        // Build custom deck 3
+                        ArrayList <Monster> deck3 = new ArrayList<>();
+                        
+                        for (int i = 1; i < data.length; i++)
+                            deck3.add(monsterList[Integer.parseInt(data[i])]);
+                        
+                        player.setCustomDeck3(deck3);
+                        System.out.println("[INFO] Custom deck 3 loaded successfully");
+                        break;
+                    }
+                    
+                    case "name:":
+                    {
+                        player.setName(data[1]);
+                        break;
+                    }
+                    
+                    case "isNewPlayer:":
+                    {
+                        if (data[1].equals("1"))
+                            System.out.println("[INFO] New player, load beginner deck");
+                        else
+                            System.out.println("[INFO] Returning player");
+                        
+                        break;
+                    }
+                    
+                    case "gemBalance:":
+                    {
+                        int gemBalance = Integer.parseInt(data[1]);
+                        System.out.println("[INFO] Player gem balance is: " + gemBalance);
+                        player.setGemBalance(gemBalance);
+                        break;
+                    }
+                    
+                    case "cardPool:":
+                    {
+                        ArrayList <Monster> cardPool = new ArrayList<>();
+                        
+                        for (int i = 1; i < data.length; i++)
+                            cardPool.add(monsterList[Integer.parseInt(data[i])]);
+                        
+                        player.setCardPool(cardPool);
+                        System.out.println("[INFO] Player card pool has been successfully loaded");
+                        break;
+                    }
+                }
+            }
+            
+        } catch (IOException err)
+        {
+            System.out.println("[ERROR] playerData.txt was not found!");
+        }
         
         System.out.println("[INFO] Player data successfully loaded");
     }
@@ -116,6 +206,11 @@ public class Game {
     public void setMonsterList(Monster[] monsterList)
     {
         this.monsterList = monsterList;
+    }
+    
+    public File getPlayerData()
+    {
+        return playerData;
     }
     
 }

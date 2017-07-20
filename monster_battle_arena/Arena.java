@@ -342,6 +342,7 @@ class Arena {
     {
         try
         {
+            // May throw IllegalArgumentException for duplicate children added to HBox
             ImageView card = new ImageView(new Image("/ImageAssets/Cards/card_" + toAdd.getMonsterID() + ".png", 260, 355, false, false));
             card.setOnMouseClicked(e -> {
                 if (whereToAdd.equals(playerHandUI))
@@ -352,7 +353,7 @@ class Arena {
                 else
                 {
                     botFieldUI.getChildren().add(card);
-                    // need to make bot hand ui variable
+                    // TODO: need to make bot hand ui variable
                 }
             });
             whereToAdd.getChildren().add(card);

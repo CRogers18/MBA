@@ -1,5 +1,6 @@
 package monster_battle_arena;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Timer;
@@ -16,12 +17,13 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private final String version = "0.12";
+    private final String version = "0.13";
     private final Game game = new Game();
     private final Player player = new Player();
+    private File playerData;
     private Monster[] monsterList;
     private Image[] cardImages, cardBanners;
-    private boolean showRamStats = false;
+    private boolean showRamStats = true;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -38,6 +40,7 @@ public class Main extends Application {
         monsterList = game.getMonsterList();
         cardImages = game.loadCardImages();
         cardBanners = game.loadCardBanners();
+        playerData = game.getPlayerData();
         
         if (showRamStats)
         {
@@ -65,7 +68,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws URISyntaxException
     {
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage, playerData);
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu();

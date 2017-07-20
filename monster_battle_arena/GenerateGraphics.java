@@ -1,7 +1,14 @@
 package monster_battle_arena;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.application.Platform;
@@ -50,18 +57,22 @@ public class GenerateGraphics {
     private VBox cardBannerBox;
 
     private final Player player;
+    private File playerData;
+    private Path playerDataPath;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy;
     private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false;
     private Text playerGemCount;
     
-    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage)
+    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage, File playerData)
     {
         this.player = player;
         this.monsterList = monsters;
         this.cardImages = cardImages;
         this.cardBanners = cardBanners;
         this.mainStage = mainStage;
+        this.playerData = playerData;
+        playerDataPath = Paths.get(playerData.getPath());
     }
     
     public Button makeButton(String text, String textColor, String bgColor, int fontSize, double minWidth)
@@ -259,15 +270,15 @@ public class GenerateGraphics {
         ds.setColor(Color.AQUA);
         ds.setRadius(40);
         
-        Text descriptionBox = new Text("");
-        descriptionBox.setFill(Color.BLUE);
+        Text descriptionBox = makeText("Select a game mode to learn more!", "", 32);
+        descriptionBox.setFill(Color.CYAN);
         descriptionBox.relocate(60, 550);
         // creates the backdrop                      
         Rectangle backdrop = new Rectangle();
         backdrop.relocate(60, 550);
         backdrop.setWidth(1800);
         backdrop.setHeight(325);
-        backdrop.setOpacity(0.25);
+        backdrop.setOpacity(0.65);
         
         for (int i = 0; i < 3; i++)
         {
@@ -277,6 +288,15 @@ public class GenerateGraphics {
             // TODO: Look further into chaining effects with setInput() method
             playBtns[i].setEffect(makeDropShadow(Color.AQUA, 40));
             playBtns[i].setOnMouseEntered(e -> {
+                
+                // If the button has been clicked and the mouse enters a button
+                // that wasn't the one selected, un-apply the fade effect
+                if (playBtnisClicked && clickedBy != index)
+                {
+                    playBtnisClicked = false;
+                    playBtns[clickedBy].setEffect(makeDropShadow(Color.CYAN, 40));
+                    playText.setVisible(false);
+                }
                 
                 // Create a new timer task to run
                 TimerTask fadeEffect = new TimerTask()
@@ -329,17 +349,18 @@ public class GenerateGraphics {
                     }
                 };
 
-                // Schedule task to run every 15 ms
-                timer.schedule(fadeEffect, 15, 15);
-                
-                if (playBtnisClicked && clickedBy != index)
+                // Schedule task to run every 15 ms if no button has been clicked
+                if (!playBtnisClicked)
                 {
-                    playBtnisClicked = false;
-                //    System.out.println("Cancelling effect");
-                    playBtns[clickedBy].setEffect(makeDropShadow(Color.CYAN, 40));
-                    playText.setVisible(false);
-                    fadeEffect.cancel();
+                    descriptionBox.setText("Select a game mode to learn more!");
+                    timer.schedule(fadeEffect, 15, 15);
                 }
+                
+                // If a button is active and it isn't the one the player selected
+                // then go ahead and cancel the task so that the fade effect can
+                // be applied to a new button
+                if (playBtnisClicked && clickedBy != index)
+                    fadeEffect.cancel();
 
                 // When the mouse exits the image, set effect back to normal and
                 // cancel the fadeEffect timer task
@@ -355,12 +376,13 @@ public class GenerateGraphics {
            
                 // WIP listener for different images being clicked
                 playBtns[index].setOnMouseClicked(ev -> {
-                 
+                    
+                    playBtnisClicked = true;
+                    
                     switch (index)
                     {
                         // Campaign mode
                         case 0:
-                            playBtnisClicked = true;
                             clickedBy = 0;
                         //    ds.setColor(Color.YELLOW);
                             descriptionBox.setText("Enter Campaign description here");
@@ -368,7 +390,6 @@ public class GenerateGraphics {
                         
                         // Tournament mode
                         case 1:
-                            playBtnisClicked = true;
                             clickedBy = 1;
                         //    ds.setColor(Color.YELLOW);
                             descriptionBox.setText("Enter Tournament description here");
@@ -379,7 +400,6 @@ public class GenerateGraphics {
                             // Make buttons to select custom deck, add new nodes
                             // to playMenuGroup, remove them if another mode is
                             // selected
-                            playBtnisClicked = true;
                             clickedBy = 2;
                             
                             // Scene swap should happen here
@@ -388,7 +408,7 @@ public class GenerateGraphics {
                             // playMenu should be swapped with scene for arena
                             mainStage.setScene(arenaUI);
                             Arena gameArena = new Arena(player, monsterList, arenaGroup);
-                        //    ds.setColor(Color.YELLOW);
+                        //  ds.setColor(Color.YELLOW);
                             descriptionBox.setText("Enter Custom description here");
                             break;
                             
@@ -499,7 +519,7 @@ public class GenerateGraphics {
             if (currentGemCount >= 100)
             {
                 player.setGemBalance(currentGemCount-100);
-
+                
                 String newGemCount = Integer.toString(player.getGemBalance());
                 playerGemCount.setText(newGemCount);
 
@@ -544,10 +564,35 @@ public class GenerateGraphics {
         });
         
         Button previous = makeButton("Back", "#00ffff", "#0d5cdb", 25, 200);
-        previous.relocate(10, 900);
+        previous.relocate(75, 900);
         previous.setOnMouseEntered(e -> previous.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         previous.setOnMouseExited(e -> previous.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
         previous.setOnAction(ev -> {
+            
+            // Write changes to the player's updated gem balance when the shop is closed.
+            // TODO: Move this code to be in the save method when the whole application is closed.
+            try
+            {
+                List <String> fileContents = new ArrayList<>(Files.readAllLines(playerDataPath, StandardCharsets.UTF_8));
+                
+                String updatedBalance = "gemBalance: ", newBalance = Integer.toString(player.getGemBalance());
+                updatedBalance += newBalance;
+                fileContents.set(2, updatedBalance);
+                
+                String updatedPool = "cardPool: ";
+                
+                for (int i = 0; i < player.getCardPool().size(); i++)
+                    updatedPool += Integer.toString(player.getCardPool().get(i).getMonsterID()) + " ";
+                
+                fileContents.set(6, updatedPool);
+                
+                Files.write(playerDataPath, fileContents, StandardCharsets.UTF_8);
+                
+            } catch (IOException err)
+            {
+                System.out.println("{ERROR] Failed to write updated gem count to player file");
+            }
+                        
             mainStage.setScene(mainMenu);
             vidPlayer.play();
         });
@@ -583,6 +628,15 @@ public class GenerateGraphics {
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
         cardBannerBox.setPadding(new Insets(5, 0, 400, 1460));
+        
+        // Load custom deck1 in by default when the menu is opened
+        for (Monster card : player.getCustomDeck1())
+        {
+            ImageView bannerImage = new ImageView(cardBanners[card.getMonsterID()]);
+            bannerImage.setId(Integer.toString(card.getMonsterID()));
+            bannerImage.setOnMouseClicked(ev -> cardBannerBox.getChildren().remove(bannerImage));
+            cardBannerBox.getChildren().add(bannerImage);
+        }
 
         /* Graphic for deck editor needs to be corrected, minor issues with
            alignment occur when placing cards at equal distance from one another */
@@ -765,6 +819,61 @@ public class GenerateGraphics {
             
             saveCurrentDeck(selectedDeck);
             
+            // Write custom deck changes to playerData.txt
+            try
+            {
+                // Copy contents of playerData.txt into an array list
+                List <String> deckContents = new ArrayList<>(Files.readAllLines(playerDataPath, StandardCharsets.UTF_8));
+
+                // Go through each line for deck contents
+                for (int i = 0; i < 3; i++)
+                {
+                    switch (i)
+                    {
+                        // Re-construct each custom deck line from the saved player changes
+                        case 0:
+                        {
+                            String deckChanges = "deck1: ";
+
+                            for (Monster card : player.getCustomDeck1())
+                                deckChanges += Integer.toString(card.getMonsterID()) + " ";
+
+                            deckContents.set(3, deckChanges);
+                            break;
+                        }
+
+                        case 1:
+                        {
+                            String deckChanges = "deck2: ";
+
+                            for (Monster card : player.getCustomDeck2())
+                                deckChanges += Integer.toString(card.getMonsterID()) + " ";
+
+                            deckContents.set(4, deckChanges);
+                            break;
+                        }
+
+                        case 2:
+                        {
+                            String deckChanges = "deck3: ";
+
+                            for (Monster card : player.getCustomDeck3())
+                                deckChanges += Integer.toString(card.getMonsterID()) + " ";
+
+                            deckContents.set(5, deckChanges);
+                            break;
+                        }
+                    }
+                }
+
+                // Write deck changes to the playerData file
+                Files.write(playerDataPath, deckContents, StandardCharsets.UTF_8);
+
+            } catch (IOException err)
+            {
+                System.out.println("[ERROR] Failed to write changes to playerData.txt");
+            }
+            
             pageNumber = 1;
             pageForward.setText("Page " + (pageNumber + 1));
             pageForward.setDisable(false);
@@ -926,7 +1035,7 @@ public class GenerateGraphics {
         */
 
     private void saveCurrentDeck(int selectedDeck)
-    {
+    {        
         switch (selectedDeck)
         {
             case 1:
