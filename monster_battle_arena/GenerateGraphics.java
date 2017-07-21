@@ -18,6 +18,7 @@ import javafx.scene.CacheHint;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
@@ -168,6 +169,11 @@ public class GenerateGraphics {
         mainTitle.setStroke(Color.BLUE);
         mainTitle.setFill(Color.WHITE);
         
+        Text version = new Text("v 0.131");
+        version.setFont(Font.font("Times", FontWeight.BOLD, 20));
+        version.setFill(Color.WHITE);
+        version.relocate(1280, 300);
+        
         // Make buttons to place on the main menu
         // makeButton parameters: button text content, text color, button color, text size, button width
         Button playBtn = makeButton("Play", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
@@ -243,7 +249,7 @@ public class GenerateGraphics {
 
         // Add all of the nodes to the vertical box and then add to the root group
         vertBox.getChildren().addAll(mainTitle, startBtn);
-        root.getChildren().addAll(audio, video, vertBox);
+        root.getChildren().addAll(audio, video, vertBox, version);
         
         vidPlayer.play();
         audioPlayer.play();
@@ -1080,7 +1086,7 @@ public class GenerateGraphics {
     private Scene createArenaUI()
     {
         arenaGroup = new Group();
-        Scene arenaUI = new Scene(arenaGroup, 1920, 1080);
+        Scene arenaUI = new Scene(arenaGroup, 1920, 1080, false, SceneAntialiasing.BALANCED);
         
         Image arena_bg = new Image("/ImageAssets/mba_arena.png");
         ImageView arenaBgView = new ImageView(arena_bg);
@@ -1088,21 +1094,26 @@ public class GenerateGraphics {
         // NOTE: new Insets (top, right, bottom, left) spacing is in pixels
         
         // Make 2 containers for card images to be placed in
-        HBox playerField = new HBox(50);
-        playerField.setPadding(new Insets(0, 300, 0, 300));
-        playerField.relocate(226, 591);
+        HBox playerField = new HBox(20);
+        playerField.setPadding(new Insets(50, 300, 10, 300));
+        playerField.relocate(226, 350);
         
         HBox botField = new HBox(50);
-        botField.setPadding(new Insets(0, 300, 0, 300));
-        botField.relocate(226, 152);
+        botField.setPadding(new Insets(50, 300, 30, 300));
+        botField.relocate(226, 220);
         botField.setOnMouseClicked(e -> { mainStage.setScene(mainMenu); vidPlayer.play(); });
         
         // Box to display player cards in hand
-        HBox playerHand = new HBox(20);
-        playerHand.setPadding(new Insets(50, 300, 0, 300));
-        playerHand.relocate(381, 979);
+        HBox playerHand = new HBox(0);
+        playerHand.setPadding(new Insets(0, 300, 0, 200));
         
-        arenaGroup.getChildren().addAll(arenaBgView, playerField, botField, playerHand);
+        // TODO: will need to change variably with respect to # of cards in hand
+        playerHand.relocate(250, 730);
+        
+        HBox botHand = new HBox(20);
+        botHand.setPadding(new Insets(5, 300, 0, 300));
+        botHand.relocate(300, 0);
+        arenaGroup.getChildren().addAll(arenaBgView, playerField, botField, playerHand, botHand);
         
         return arenaUI;
     }

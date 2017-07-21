@@ -17,7 +17,7 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private final String version = "0.13";
+    private final String version = "0.131";
     private final Game game = new Game();
     private final Player player = new Player();
     private File playerData;
@@ -75,6 +75,10 @@ public class Main extends Application {
                 
         primaryStage.setTitle("Monster Battle Arena v" + version);
         primaryStage.setScene(mainMenu);
+        primaryStage.setWidth(1920);
+        primaryStage.setHeight(1080);
+        primaryStage.setResizable(false);
+//TODO: primaryStage.setFullScreen(true);
         primaryStage.setOnCloseRequest(e -> {
         //  e.consume();      <--- will be used to add confirm dialog on close
             Platform.exit();

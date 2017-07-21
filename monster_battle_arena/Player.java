@@ -3,13 +3,12 @@ package monster_battle_arena;
 import java.util.ArrayList;
 
 /**
- *
  * @author Coleman Rogers
- */
+ **/
 public class Player {
     
     private String name;
-    private int gemBalance = 0, gameHealth;
+    private int gemBalance = 10000, gameHealth;
     private ArrayList <Monster> cardPool = new ArrayList <>();
     private ArrayList <Monster> customDeck1 = new ArrayList <> (), customDeck2 = new ArrayList <> (), customDeck3 = new ArrayList <> ();
     

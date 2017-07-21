@@ -10,9 +10,12 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
 /**
  * @author Coleman Rogers
@@ -27,7 +30,7 @@ class Arena {
     
     // Get the contents of the arenaUI scene
     private Group arenaUI;
-    private HBox playerFieldUI, botFieldUI, playerHandUI;
+    private HBox playerFieldUI, botFieldUI, playerHandUI, botHandUI;
     
     private int currentTurn;
     private boolean hasWon = false;
@@ -38,8 +41,8 @@ class Arena {
     {
         // Import custom player data to this class and monsterList
         // to build the bot deck with
-        this.realPlayer = p;
         monsterData = monsterList;
+        this.realPlayer = p;
         this.arenaUI = sceneData;
         initBot();
         initDecks();
@@ -144,6 +147,9 @@ class Arena {
         
         this.playerHandUI = (HBox) arenaUI.getChildren().get(3);
         playerHandUI.setOnMouseEntered(e -> System.out.println("In playerHand"));
+        
+        this.botHandUI = (HBox) arenaUI.getChildren().get(4);
+        botHandUI.setOnMouseEntered(e -> System.out.println("In botHand"));
     }
 
     private void playArenaGame()
@@ -160,14 +166,14 @@ class Arena {
         botField = new ArrayList<>();
         
         // Give each player 2 cards from the pull decks
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 5; i++)
         {
             Monster toAdd = playerPull.pop();
             addCardImage(toAdd, playerHandUI);
             playerHand.add(toAdd);
             
             toAdd = botPull.pop();
-            addCardImage(toAdd, botFieldUI);
+            addCardImage(null, botHandUI);
             botHand.add(toAdd);
         }
         
@@ -334,33 +340,171 @@ class Arena {
         playerHandUI.getChildren().clear();
         botFieldUI.getChildren().clear();
         playerHandUI.getChildren().clear();
+        botHandUI.getChildren().clear();
         
         System.out.println("[INFO] Image data has been cleared from the scene");
     }
 
     private void addCardImage(Monster toAdd, HBox whereToAdd)
     {
-        try
+        if (toAdd == null)
         {
-            // May throw IllegalArgumentException for duplicate children added to HBox
-            ImageView card = new ImageView(new Image("/ImageAssets/Cards/card_" + toAdd.getMonsterID() + ".png", 260, 355, false, false));
-            card.setOnMouseClicked(e -> {
-                if (whereToAdd.equals(playerHandUI))
-                {
+            
+            // TODO: Card image re-sizing to a bigger size when it gets placed on the field
+            ImageView cardBack = new ImageView(new Image("/ImageAssets/Cards/card_back.png", 150, 200, false, false));
+            cardBack.setOnMouseClicked(e -> {
+                
+                System.out.println("Bot clicked card");
+                botFieldUI.getChildren().add(cardBack);
+                botHandUI.getChildren().remove(cardBack);
+                
+            });
+            
+            botHandUI.getChildren().add(cardBack);
+        }
+        
+        else 
+        {
+            DropShadow cardShadow = new DropShadow();
+            cardShadow.setColor(Color.BLACK);
+            cardShadow.setSpread(0.1);
+            cardShadow.setRadius(4);
+            
+            try
+            {
+                // May throw IllegalArgumentException for duplicate children added to HBox
+                ImageView card = new ImageView(new Image("/ImageAssets/Cards/card_" + toAdd.getMonsterID() + ".png", 200, 300, false, false));
+                
+                card.setEffect(cardShadow);
+                
+                card.setOnMouseClicked(e -> {
+
+                    card.setRotate(0);
                     playerFieldUI.getChildren().add(card);
                     playerHandUI.getChildren().remove(card);
-                }
-                else
-                {
-                    botFieldUI.getChildren().add(card);
-                    // TODO: need to make bot hand ui variable
-                }
-            });
-            whereToAdd.getChildren().add(card);
-        } catch (IllegalArgumentException err)
+                    updateCardPos();
+                    
+                });
+                
+                card.setOnMouseEntered(e -> {
+                    
+                    DropShadow highlight = new DropShadow();
+                    highlight.setColor(Color.YELLOW);
+                    highlight.setSpread(0.95);
+                    highlight.setRadius(5);
+                    
+                    highlight.setInput(cardShadow);
+                    card.setSmooth(true);
+                    card.setEffect(highlight);
+                });
+                
+                card.setOnMouseExited(e -> card.setEffect(cardShadow));
+                
+                playerHandUI.getChildren().add(card);
+                updateCardPos();
+                
+            } catch (IllegalArgumentException err)
+            {
+                ImageView card = new ImageView(new Image("/ImageAssets/Cards/missingTexture.png", 200, 300, false, false));
+                card.setEffect(cardShadow);
+                
+                card.setOnMouseClicked(e -> {
+
+                    card.setRotate(0);
+                    playerFieldUI.getChildren().add(card);
+                    playerHandUI.getChildren().remove(card);
+                    updateCardPos();
+                    
+                });
+                
+                card.setOnMouseEntered(e -> {
+                    
+                    DropShadow highlight = new DropShadow();
+                    highlight.setColor(Color.YELLOW);
+                    highlight.setSpread(0.95);
+                    highlight.setRadius(5);
+                    
+                    highlight.setInput(cardShadow);
+                    card.setSmooth(true);
+                    card.setEffect(highlight);
+                });
+                
+                card.setOnMouseExited(e -> card.setEffect(cardShadow));
+
+                playerHandUI.getChildren().add(card);
+                updateCardPos();
+            }
+        }
+    }
+    
+    // For the player only, for now
+    public void updateCardPos()
+    {
+        int handSize = playerHandUI.getChildren().size();
+
+        // If even number of cards in hand, no centered card will exist
+        double rotateValue = -10;
+
+        for (int i = 0; i < handSize; i++)
         {
-            ImageView card = new ImageView(new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false));
-            whereToAdd.getChildren().add(card);
+            ImageView cardToRotate = (ImageView) playerHandUI.getChildren().get(i);
+
+            // If odd # of cards in hand
+            switch (handSize)
+            {
+                case 1:
+                    cardToRotate.setRotate(0);
+                    break;
+
+                case 2:
+                    // If first iteration of loop, set rotateValue
+                    if (i == 0)
+                        rotateValue = -5;
+                    
+                    cardToRotate.setRotate(rotateValue);
+                    rotateValue += 10;
+                    break;
+
+                case 3:
+                    if (i == 0)
+                        rotateValue = -8;
+                    
+                    if (i == 1)
+                        cardToRotate.relocate(cardToRotate.getX(), cardToRotate.getY() + 50);
+                    
+                    cardToRotate.setRotate(rotateValue);
+                    rotateValue += 8;
+                    break;
+                    
+                case 4:
+                    if (i == 0)
+                        rotateValue = -10;
+                    
+                    if (i == 2)
+                        rotateValue = 6;
+                    
+                    cardToRotate.setRotate(rotateValue);
+                    rotateValue += 4;
+                    break;
+                    
+                case 5:
+                    if (i == 0)
+                    {
+                        rotateValue = -10;
+                        cardToRotate.relocate(cardToRotate.getX(), cardToRotate.getY() - 50);
+                    }
+                    
+                    if (i == 4)
+                        cardToRotate.relocate(cardToRotate.getX(), cardToRotate.getY() - 50);
+                    
+                    cardToRotate.setRotate(rotateValue);
+                    rotateValue += 5;
+                    break;
+            }
+
+            // Replace old element with rotated one
+            
+            playerHandUI.getChildren().set(i, cardToRotate);
         }
     }
 
