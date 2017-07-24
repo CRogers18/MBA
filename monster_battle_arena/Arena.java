@@ -10,7 +10,6 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

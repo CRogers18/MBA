@@ -17,7 +17,7 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private final String version = "0.131";
+    private final String version = "0.134";
     private final Game game = new Game();
     private final Player player = new Player();
     private File playerData;

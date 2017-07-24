@@ -12,9 +12,10 @@ public class RanNumGen
         return ThreadLocalRandom.current().nextInt(num1, ++num2);
     }
     
-    public void packOpening(Player player, boolean isUltra, Monster[] monsterList)
+    public int[] packOpening(Player player, boolean isUltra, Monster[] monsterList)
     {
         Monster[] cardsDropped = new Monster[3];
+        int[] ids = new int[3];
         
         if (!isUltra)
         {
@@ -30,6 +31,7 @@ public class RanNumGen
                     System.out.println("Rarity 1 rolled");
                     // Rarity 1 card drop
                     cardRoll = generator(0, 7);
+                    ids[i] = cardRoll;
                     cardsDropped[i] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[i].getMonsterName());
                 }
@@ -39,6 +41,7 @@ public class RanNumGen
                     System.out.println("Rarity 2 rolled");
                     // Rarity 2 card drop
                     cardRoll = generator(8, 14);
+                    ids[i] = cardRoll;
                     cardsDropped[i] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[i].getMonsterName());
                 }
@@ -48,6 +51,7 @@ public class RanNumGen
                     System.out.println("Rarity 3 rolled");
                     // Rarity 3 card drop
                     cardRoll = generator(15, 26);
+                    ids[i] = cardRoll;
                     cardsDropped[i] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[i].getMonsterName());
                 }
@@ -57,6 +61,7 @@ public class RanNumGen
                     System.out.println("Rarity 4 rolled");
                     // Rarity 4 card drop
                     cardRoll = generator(27, 34);
+                    ids[i] = cardRoll;
                     cardsDropped[i] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[i].getMonsterName());
                 }
@@ -80,6 +85,7 @@ public class RanNumGen
                     System.out.println("Rarity 2 rolled");
                     // Rarity 2 card drop
                     cardRoll = generator(8, 14);
+                    ids[j] = cardRoll;
                     cardsDropped[j] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[j].getMonsterName());
                 }
@@ -89,6 +95,7 @@ public class RanNumGen
                     System.out.println("Rarity 3 rolled");
                     // Rarity 3 card drop
                     cardRoll = generator(15, 26);
+                    ids[j] = cardRoll;
                     cardsDropped[j] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[j].getMonsterName());
                 }
@@ -98,6 +105,7 @@ public class RanNumGen
                     System.out.println("Rarity 4 rolled");
                     // Rarity 4 card drop
                     cardRoll = generator(27, 34);
+                    ids[j] = cardRoll;
                     cardsDropped[j] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[j].getMonsterName());
                 }
@@ -107,6 +115,7 @@ public class RanNumGen
                     System.out.println("Rarity 5 rolled");
                     // Rarity 5 card drop
                     cardRoll = generator(35, 39);
+                    ids[j] = cardRoll;
                     cardsDropped[j] = monsterList[cardRoll];
                     System.out.println("Card dropped: " + cardsDropped[j].getMonsterName());
                 }
@@ -120,6 +129,8 @@ public class RanNumGen
             player.getCardPool().add(cardsDropped[i]);
         
         System.out.println("");
+     
         
+        return ids;
     }
 }

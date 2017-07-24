@@ -460,6 +460,8 @@ public class GenerateGraphics {
                 
         ImageView scpImage = new ImageView(standard_card_pack);
         ImageView ucpImage = new ImageView(ultra_card_pack);
+        HBox cardsOpened = new HBox(100);
+        cardsOpened.relocate(500, 400);
         
         scpImage.setOnMouseEntered(e -> scpImage.setEffect(makeDropShadow(Color.AQUA, 40)));
         scpImage.setOnMouseExited(e -> scpImage.setEffect(null));
@@ -480,7 +482,7 @@ public class GenerateGraphics {
         playerGems.setWidth(230);
         playerGems.setHeight(75);
         playerGems.setOpacity(0.60);
-        
+
         // Box for player gem count
         HBox playerGemBox = new HBox(10);
         playerGemBox.relocate(50, 50);
@@ -520,6 +522,17 @@ public class GenerateGraphics {
         
         // Standard card pack opening
         scpImage.setOnMouseClicked(e -> {
+            
+            // Transparent recentangle for background for displaying pack contents
+            Rectangle packOpenBg = new Rectangle();
+            packOpenBg.relocate(0, 0);
+            packOpenBg.setWidth(1920);
+            packOpenBg.setHeight(1080);
+            packOpenBg.setOpacity(0.95);
+            
+            // Add the pack opening background to the group when the pack is clicked
+            shopGroup.getChildren().add(packOpenBg);
+            
             int currentGemCount = player.getGemBalance();
             
             if (currentGemCount >= 100)
@@ -530,7 +543,56 @@ public class GenerateGraphics {
                 playerGemCount.setText(newGemCount);
 
                 RanNumGen openPack = new RanNumGen();
-                openPack.packOpening(player, false, monsterList);
+                int[] idsOpened = openPack.packOpening(player, false, monsterList);
+                
+                // Add cards opened face down first
+                for (int i = 0; i < idsOpened.length; i++)
+                {
+                    ImageView cardDown = new ImageView(new Image("/ImageAssets/Cards/card_back.png", 220, 300, false, false));
+                    final int index = i;
+                    cardDown.setId(Integer.toString(idsOpened[i]));
+                    
+                    switch (monsterList[idsOpened[i]].getRarity())
+                    {
+                        case 3:
+                            cardDown.setEffect(makeDropShadow(Color.GREEN, 40));
+                            break;
+                            
+                        case 4:
+                            cardDown.setEffect(makeDropShadow(Color.BLUE, 40));
+                            break;
+                            
+                        case 5:
+                            cardDown.setEffect(makeDropShadow(Color.GOLD, 40));
+                            break;
+                    }
+                    
+                    cardDown.setOnMouseClicked(ev -> {
+                        try
+                        {
+                            cardDown.setImage(new Image("/ImageAssets/Cards/card_" + cardDown.getId() + ".png", 220, 300, false, false));
+                        } catch (IllegalArgumentException err)
+                        {
+                            cardDown.setImage(new Image("/ImageAssets/Cards/missingTexture.png", 220, 300, false, false));
+                        }
+                    });
+                    
+                    cardsOpened.getChildren().add(cardDown);
+                }
+                
+                // Add the new HBox to the group
+                shopGroup.getChildren().add(cardsOpened);
+                
+                // Make an okay button to close the box displaying the cards obtained
+                Button okayBtn = makeButton("Continue", "#424141", "#b2b2b2", 25, 300);
+                okayBtn.relocate(750, 900);
+                okayBtn.setOnAction(ev -> {
+                    
+                    // Empty out the previous cards displayed when the window is closed 
+                    cardsOpened.getChildren().clear();
+                    shopGroup.getChildren().removeAll(packOpenBg, cardsOpened, okayBtn);
+                });
+                shopGroup.getChildren().add(okayBtn);
                 
                 // Sort cards in ascending order, player card pool, by monster ID
                 player.sortCardPool(player.getCardPool(), monsterList);
@@ -545,6 +607,15 @@ public class GenerateGraphics {
         
         // Ultra card pack opening
         ucpImage.setOnMouseClicked(e -> {
+            
+            Rectangle packOpenBg = new Rectangle();
+            packOpenBg.relocate(0, 0);
+            packOpenBg.setWidth(1920);
+            packOpenBg.setHeight(1080);
+            packOpenBg.setOpacity(0.95);
+            
+            shopGroup.getChildren().add(packOpenBg);
+            
             int currentGemCount = player.getGemBalance();
             
             if (currentGemCount >= 400)
@@ -554,8 +625,57 @@ public class GenerateGraphics {
                 String newGemCount = Integer.toString(player.getGemBalance());
                 playerGemCount.setText(newGemCount);
 
-                RanNumGen openPack = new RanNumGen();
-                openPack.packOpening(player, true, monsterList);
+                RanNumGen openPack = new RanNumGen();                
+                int[] idsOpened = openPack.packOpening(player, false, monsterList);
+                
+                // Add cards opened face down first
+                for (int i = 0; i < idsOpened.length; i++)
+                {
+                    ImageView cardDown = new ImageView(new Image("/ImageAssets/Cards/card_back.png", 220, 300, false, false));
+                    final int index = i;
+                    cardDown.setId(Integer.toString(idsOpened[i]));
+                    
+                    switch (monsterList[idsOpened[i]].getRarity())
+                    {
+                        case 3:
+                            cardDown.setEffect(makeDropShadow(Color.GREEN, 40));
+                            break;
+                            
+                        case 4:
+                            cardDown.setEffect(makeDropShadow(Color.BLUE, 40));
+                            break;
+                            
+                        case 5:
+                            cardDown.setEffect(makeDropShadow(Color.GOLD, 40));
+                            break;
+                    }
+                    
+                    cardDown.setOnMouseClicked(ev -> {
+                        try
+                        {
+                            cardDown.setImage(new Image("/ImageAssets/Cards/card_" + cardDown.getId() + ".png", 220, 300, false, false));
+                        } catch (IllegalArgumentException err)
+                        {
+                            cardDown.setImage(new Image("/ImageAssets/Cards/missingTexture.png", 220, 300, false, false));
+                        }
+                    });
+                    
+                    cardsOpened.getChildren().add(cardDown);
+                }
+                
+                // Add the new HBox to the group
+                shopGroup.getChildren().add(cardsOpened);
+                
+                // Make an okay button to close the box displaying the cards obtained
+                Button okayBtn = makeButton("Continue", "#424141", "#b2b2b2", 25, 300);
+                okayBtn.relocate(750, 900);
+                okayBtn.setOnAction(ev -> {
+                    
+                    // Empty out the previous cards displayed when the window is closed 
+                    cardsOpened.getChildren().clear();
+                    shopGroup.getChildren().removeAll(packOpenBg, cardsOpened, okayBtn);
+                });
+                shopGroup.getChildren().add(okayBtn);
                 
                 // Sort cards in ascending order, player card pool, by monster ID
                 player.sortCardPool(player.getCardPool(), monsterList);
