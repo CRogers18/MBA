@@ -71,11 +71,10 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.setScene(splashScene);
         primaryStage.show();
-        
-        isBeginner = game.isBeginner();
-        
+                
         // Make a new instance of the game class and call the initialization method
         game.initGame(player);
+        isBeginner = game.isBeginner();
         
         monsterList = game.getMonsterList();
         cardImages = game.loadCardImages();
@@ -87,7 +86,7 @@ public class Main extends Application {
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu();
-                
+        
         if (isBeginner)
         {
             Scene beginnerScene = gameGraphics.createBeginnerScene();
