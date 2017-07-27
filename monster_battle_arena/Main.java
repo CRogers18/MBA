@@ -8,8 +8,10 @@ import java.util.TimerTask;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 /*
@@ -17,13 +19,13 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
     
-    private final String version = "0.134";
+    private final String version = "0.140";
     private final Game game = new Game();
     private final Player player = new Player();
     private File playerData;
     private Monster[] monsterList;
     private Image[] cardImages, cardBanners;
-    private boolean showRamStats = true;
+    private boolean showRamStats = true, isBeginner = true;
             
     public static void main(String[] args) {
         // Code execution goes here after running init() and start() methods
@@ -33,14 +35,6 @@ public class Main extends Application {
     public void init() throws IOException
     {
         System.out.println("[INFO] Starting Monster Battle Arena v" + version);
-        
-        // Make a new instance of the game class and call the initialization method
-        game.initGame(player);
-        
-        monsterList = game.getMonsterList();
-        cardImages = game.loadCardImages();
-        cardBanners = game.loadCardBanners();
-        playerData = game.getPlayerData();
         
         if (showRamStats)
         {
@@ -61,23 +55,49 @@ public class Main extends Application {
                 }
 
             }, 0, 1000);
-        }
+        }        
     }
     
     @Override
-    public void start(Stage primaryStage) throws URISyntaxException
+    public void start(Stage primaryStage) throws URISyntaxException, IOException
     {
+        // Pre-load splash screen
+        Group splashGroup = new Group();
+        Scene splashScene = new Scene(splashGroup, 1920, 1080);
+        ImageView splashImage = new ImageView(new Image("/ImageAssets/loadScreen.png", 1920, 1080, false, false));
+        splashGroup.getChildren().add(splashImage);
+        primaryStage.setWidth(1920);
+        primaryStage.setHeight(1080);
+        primaryStage.setResizable(false);
+        primaryStage.setScene(splashScene);
+        primaryStage.show();
+        
+        isBeginner = game.isBeginner();
+        
+        // Make a new instance of the game class and call the initialization method
+        game.initGame(player);
+        
+        monsterList = game.getMonsterList();
+        cardImages = game.loadCardImages();
+        cardBanners = game.loadCardBanners();
+        playerData = game.getPlayerData();
+                
         // Create an instance of the graphics generation class
-        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage, playerData);
+        GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage, playerData, isBeginner);
 
         // Create main menu scene to display when the game starts
         Scene mainMenu = gameGraphics.createMainMenu();
                 
-        primaryStage.setTitle("Monster Battle Arena v" + version);
-        primaryStage.setScene(mainMenu);
-        primaryStage.setWidth(1920);
-        primaryStage.setHeight(1080);
-        primaryStage.setResizable(false);
+        if (isBeginner)
+        {
+            Scene beginnerScene = gameGraphics.createBeginnerScene();
+            primaryStage.setScene(beginnerScene);
+        }
+        
+        else
+            primaryStage.setScene(mainMenu);
+                
+        
 //TODO: primaryStage.setFullScreen(true);
         primaryStage.setOnCloseRequest(e -> {
         //  e.consume();      <--- will be used to add confirm dialog on close

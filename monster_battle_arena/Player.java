@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Player {
     
     private String name;
-    private int gemBalance = 10000, gameHealth;
+    private int gemBalance, gameHealth;
     private ArrayList <Monster> cardPool = new ArrayList <>();
     private ArrayList <Monster> customDeck1 = new ArrayList <> (), customDeck2 = new ArrayList <> (), customDeck3 = new ArrayList <> ();
     

@@ -21,6 +21,8 @@ import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
@@ -40,6 +42,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 
 /*
  * @author Coleman Rogers
@@ -50,7 +54,7 @@ public class GenerateGraphics {
     Timer timer = new Timer();
     
     private Group root, deckEditGroup, arenaGroup;
-    private MediaPlayer vidPlayer;
+    private MediaPlayer vidPlayer, audioPlayer;
     private final Image[] cardImages, cardBanners;
     private ImageView[] deckEditorCardView, playBtns;
     private final Stage mainStage;
@@ -62,10 +66,11 @@ public class GenerateGraphics {
     private Path playerDataPath;
     private final Monster[] monsterList;
     private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy;
-    private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false;
+    private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false, isBeginner;
     private Text playerGemCount;
+    private String gameVersion = "v0.140";
     
-    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage, File playerData)
+    public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage, File playerData, boolean isBeginner)
     {
         this.player = player;
         this.monsterList = monsters;
@@ -73,6 +78,7 @@ public class GenerateGraphics {
         this.cardBanners = cardBanners;
         this.mainStage = mainStage;
         this.playerData = playerData;
+        this.isBeginner = isBeginner;
         playerDataPath = Paths.get(playerData.getPath());
     }
     
@@ -148,7 +154,7 @@ public class GenerateGraphics {
         
         // Media players for both audio and video
         vidPlayer = new MediaPlayer(mainMenuBg);
-        MediaPlayer audioPlayer = new MediaPlayer(mainMenuAudio);
+        audioPlayer = new MediaPlayer(mainMenuAudio);
         
         /* Leak seems for now to be fixed, according to new RAM usage meter, 
            will still keep an eye on this section in the future */
@@ -169,7 +175,7 @@ public class GenerateGraphics {
         mainTitle.setStroke(Color.BLUE);
         mainTitle.setFill(Color.WHITE);
         
-        Text version = new Text("v 0.131");
+        Text version = new Text(gameVersion);
         version.setFont(Font.font("Times", FontWeight.BOLD, 20));
         version.setFill(Color.WHITE);
         version.relocate(1280, 300);
@@ -251,10 +257,203 @@ public class GenerateGraphics {
         vertBox.getChildren().addAll(mainTitle, startBtn);
         root.getChildren().addAll(audio, video, vertBox, version);
         
-        vidPlayer.play();
-        audioPlayer.play();
-                
+        // If launching direct to main menu, begin playback of music and video
+        if (!isBeginner)
+        {
+            vidPlayer.play();
+            audioPlayer.play();
+        }
+        
         return mainMenu;
+    }
+    
+    public Scene createBeginnerScene()
+    {
+        Group bGroup = new Group();
+        Scene bScene = new Scene(bGroup, 1920, 1080);
+                
+        ImageView bg = new ImageView(new Image("/ImageAssets/play_bg.png", 1920, 1080, false, false));
+        
+        HBox cardContainer = new HBox(20);
+        
+        VBox nodeContainer = new VBox(50);
+        VBox firstPackContainer = new VBox(100);
+
+        nodeContainer.relocate(470, 200);
+        nodeContainer.setAlignment(Pos.CENTER);
+        
+        Text nameText = new Text("Enter a name for your player: ");
+        nameText.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+        nameText.setFill(Color.WHITE);
+        
+        TextField playerName = new TextField();
+        playerName.setTooltip(new Tooltip("Names are limited to 16 characters"));
+        playerName.setFont(Font.font("Arial", FontWeight.NORMAL, 32));
+        playerName.setMaxWidth(450);
+        playerName.setAlignment(Pos.CENTER);
+        
+        Text errorText = new Text("Error creating character!");
+        errorText.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+        errorText.setFill(Color.RED);
+        errorText.setStroke(Color.BLACK);
+        errorText.setVisible(false);
+        playerName.setOnMouseClicked(e -> {
+            errorText.setVisible(false);
+            playerName.clear();
+        });
+        
+        Rectangle packOpenBg = new Rectangle();
+        packOpenBg.relocate(0, 0);
+        packOpenBg.setWidth(1920);
+        packOpenBg.setHeight(1080);
+        packOpenBg.setOpacity(0.95);
+        packOpenBg.setVisible(false);
+        
+        Button submitBtn = makeButton("Continue", "#00ffff", "#0d5cdb", 25, 150);
+        submitBtn.setOnMouseEntered(e -> submitBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        submitBtn.setOnMouseExited(e -> submitBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        submitBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        submitBtn.setOnAction(e -> {
+            
+            String playerText = playerName.getText().toLowerCase();
+            int nameLength = playerText.length();
+            
+            // BAD WORDS! AVERT YOUR EYES!
+            String[] bannedNames = new String[]{"admin", "mod", "fuck", "shit", "dick", 
+                                                "develop", "owner", "hitle", "stalin", 
+                                                "trump", "nigg", "nlgg", "holocau", "cunt",
+                                                "isis", "jesus", "hammed", "pussy", "jew", "racis", "kkk",
+                                                "prophet", "fag", "gay", "homo", "porn", "anal", "slave"};
+            boolean isBannedName = false;
+            
+            // If name is longer than 16 characters or empty, don't allow it
+            if (nameLength > 17 || nameLength == 0)
+            {
+                isBannedName = true;
+                errorText.setVisible(true);
+            }
+            
+            if (!isBannedName)
+            {
+                // If it passes size constraints, check for banned words
+                for (int i = 0; i < bannedNames.length; i++)
+                {
+                    if (playerText.contains(bannedNames[i]))
+                    {
+                            errorText.setVisible(true);
+                            isBannedName = true;
+                            break;
+                    }
+                }
+            }
+            
+            if (!isBannedName)
+            {
+                if (errorText.isVisible())
+                    errorText.setVisible(false);
+                
+                player.setName(playerName.getText());
+                nodeContainer.getChildren().clear();
+                
+                Text welcomeText = new Text("Welcome to Monster Battle Arena " + player.getName() + "!");
+                Text welcome2 = new Text("Get started by opening your first card pack!");
+                Text flipTip = new Text("Click on each card to see what you get!");
+                welcomeText.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+                welcome2.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+                flipTip.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+                welcomeText.setFill(Color.WHITE);
+                welcome2.setFill(Color.WHITE);
+                flipTip.setFill(Color.WHITE);
+                                
+                int[] starterDeck = new int[]{0, 1, 2, 3, 4, 5, 6};
+                ImageView starterPack = new ImageView(new Image("/ImageAssets/first_card_pack.png", 220, 300, false, false));
+                starterPack.setEffect(makeDropShadow(Color.BLACK, 40));
+                
+                nodeContainer.setSpacing(100);
+                nodeContainer.relocate(300, 200);
+                nodeContainer.getChildren().addAll(welcomeText, welcome2, starterPack);
+                
+                ImageView[] cardsOpened = new ImageView[starterDeck.length];
+
+                for (int i = 0; i < starterDeck.length; i++)
+                {
+                    final int index = i;
+
+                    cardsOpened[i] = new ImageView(new Image("/ImageAssets/Cards/card_back.png", 220, 300, false, false));
+                    cardsOpened[i].setOnMouseClicked(eve -> {
+                        
+                        // Add the new monster to the player card pool
+                        player.getCardPool().add(monsterList[starterDeck[index]]);
+                        
+                        
+                        // Update image graphic to show new monster
+                        try 
+                        {
+                            cardsOpened[index].setImage(new Image("/ImageAssets/Cards/card_" + starterDeck[index] + ".png", 220, 300, false, false));
+                        } catch (IllegalArgumentException err)
+                        {
+                            cardsOpened[index].setImage(new Image("/ImageAssets/Cards/missingTexture.png", 220, 300, false, false));
+                        }
+                    });
+                }
+                
+                cardContainer.getChildren().addAll(cardsOpened);
+                firstPackContainer.getChildren().addAll(cardContainer, submitBtn, flipTip);
+                firstPackContainer.setAlignment(Pos.CENTER);
+                firstPackContainer.relocate(100, 200);
+                firstPackContainer.setDisable(true);
+                firstPackContainer.setVisible(false);
+                packOpenBg.setDisable(true);
+                
+                starterPack.setOnMouseClicked(ev -> {
+                                        
+                    firstPackContainer.setDisable(false);
+                    firstPackContainer.setVisible(true);
+                                        
+                    packOpenBg.setVisible(true);
+                    packOpenBg.setDisable(false);
+                    
+                    submitBtn.setOnAction(eve -> {
+                        
+                        // Write changes to playerData file
+                        try
+                        {
+                            List <String> fileContents = new ArrayList<>(Files.readAllLines(playerDataPath, StandardCharsets.UTF_8));
+
+                            String updatedStatus = "isNewPlayer: ", newStatus = Integer.toString(0);
+                            updatedStatus += newStatus;
+                            fileContents.set(0, updatedStatus);
+                            
+                            String updatedName = "name: ", newName = player.getName();
+                            updatedName += newName;
+                            fileContents.set(1, updatedName);
+
+                            String updatedPool = "cardPool: ";
+
+                            for (int i = 0; i < player.getCardPool().size(); i++)
+                                updatedPool += Integer.toString(player.getCardPool().get(i).getMonsterID()) + " ";
+
+                            fileContents.set(6, updatedPool);
+
+                            Files.write(playerDataPath, fileContents, StandardCharsets.UTF_8);
+
+                        } catch (IOException err)
+                        {
+                            System.out.println("{ERROR] Failed to write updated player status to player file");
+                        }
+
+                        vidPlayer.play();
+                        audioPlayer.play();
+                        mainStage.setScene(mainMenu);
+                    });
+                }); 
+            }
+        });
+        
+        nodeContainer.getChildren().addAll(nameText, playerName, submitBtn, errorText);
+        bGroup.getChildren().addAll(bg, nodeContainer, packOpenBg, firstPackContainer);
+        
+        return bScene;
     }
     
     private Scene createPlayMenu()
@@ -779,6 +978,7 @@ public class GenerateGraphics {
                 deckEditorCardView[i] = new ImageView(cardImages[i]);
                 deckEditorCardView[i].setEffect(darken);
                 deckEditorCardView[i].setCache(true);
+                deckEditorCardView[i].setSmooth(true);
                 deckEditorCardView[i].setCacheHint(CacheHint.SPEED);
 
                 if (i == 4)
@@ -907,6 +1107,7 @@ public class GenerateGraphics {
                 pageBack.setDisable(false);
             }
             
+            // NOTE: Hard-coded value will need to be updated for deck expansions
             if (pageNumber == 4 && pageForward.isDisabled())
                 pageForward.setDisable(false);
                 
@@ -917,6 +1118,7 @@ public class GenerateGraphics {
             pageBack.setText("Page " + pageNumber);
             pageNumber += 1;
             
+            // NOTE: Hard-coded value will need to be updated for deck expansions
             if (pageNumber == 5)
             {
                 pageForward.setText("");
@@ -1127,38 +1329,6 @@ public class GenerateGraphics {
             }
         }
     }
-    
-    /* Commented out at the moment since it was just for testing purposes
-        // Set an event handler for mouse clicking on the card
-        cardView.setOnMouseClicked(ev -> {
-
-            // Invert variable for whether card is moving each time it is clicked
-            isMoving = !isMoving;
-
-                // Event handler for mouse movement
-                cardView.setOnMouseMoved(eve -> {
-
-                    // If the card should be moving, get mouse coords and put the card there
-                    if (isMoving)
-                    {
-                        double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
-                        cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
-                    }
-                });
-
-                // Handles rapid mouse movement that can sometimes exit the bounds
-                // of the cardView object before setOnMouseMove event can be fired, 
-                // resulting in the card no longer being moved to the mouse coords 
-                cardView.setOnMouseExited(even -> {
-
-                    if (isMoving)
-                    {
-                        double mouseX = even.getSceneX(), mouseY = even.getSceneY();
-                        cardView.relocate(mouseX - card39.getWidth()/2, mouseY - card39.getHeight()/2);
-                    }
-                });
-        });
-        */
 
     private void saveCurrentDeck(int selectedDeck)
     {        

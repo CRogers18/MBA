@@ -1,7 +1,7 @@
-name: TestPlayer
 isNewPlayer: 1
-gemBalance: 8700
-deck1: 1 2 6 8 9 10 22 27 32 4 
-deck2: 22 27 19 39 
-deck3: 1 2 6 
-cardPool: 1 2 2 2 4 6 8 9 10 13 15 19 20 22 25 27 32 39 
+name: none
+gemBalance: 100
+deck1: 
+deck2: 
+deck3: 
+cardPool: 

@@ -17,6 +17,7 @@ public class Game {
     
     private Monster[] monsterList = new Monster[40];
     private File playerData = new File("playerData.txt");
+    private boolean isBeginner = false;
 
     public void initGame(Player player) throws IOException, FileNotFoundException
     {
@@ -123,7 +124,10 @@ public class Game {
                     case "isNewPlayer:":
                     {
                         if (data[1].equals("1"))
-                            System.out.println("[INFO] New player, load beginner deck");
+                        {
+                            isBeginner = true;
+                            System.out.println("[INFO] New player, load beginner scene instead");
+                        }
                         else
                             System.out.println("[INFO] Returning player");
                         
@@ -164,6 +168,10 @@ public class Game {
     {
         Image[] cardImages = new Image[monsterList.length];
         
+        // This line cuts 10-12 MB of active memory from the JVM heap by loading
+        // this missing texture image only one time
+        Image missingTexture = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
+        
         for (int i = 0; i < monsterList.length; i++)
         {
             try
@@ -171,7 +179,7 @@ public class Game {
                 cardImages[i] = new Image("/ImageAssets/Cards/card_" + i + ".png", 260, 355, false, false);
             } catch (IllegalArgumentException err)
             {
-                cardImages[i] = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
+                cardImages[i] = missingTexture;
             }
         }
         
@@ -183,6 +191,9 @@ public class Game {
     {
         Image[] cardBanners = new Image[monsterList.length];
         
+        // This saves about 5 MB of active memory from the JVM heap
+        Image defaultBanner = new Image("/ImageAssets/shark.jpg", 460, 70, false, false);
+        
         for (int i = 0; i < monsterList.length; i++)
         {
             try
@@ -190,7 +201,7 @@ public class Game {
                 cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".png", 460, 70, false, false);
             } catch (IllegalArgumentException err)
             {
-                cardBanners[i] = new Image("/ImageAssets/shark.jpg", 460, 70, false, false);
+                cardBanners[i] = defaultBanner;
             }
         }
         
@@ -211,6 +222,11 @@ public class Game {
     public File getPlayerData()
     {
         return playerData;
+    }
+
+    public boolean isBeginner()
+    {
+        return isBeginner;
     }
     
 }
