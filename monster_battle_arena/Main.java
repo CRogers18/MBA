@@ -1,5 +1,8 @@
 package monster_battle_arena;
 
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -13,21 +16,26 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import monster_battle_arena.Network.FindGame;
+import monster_battle_arena.Network.QueueResponse;
+import monster_battle_arena.Network.RegisterUser;
 
 /*
  * @author Coleman Rogers
  */
 public class Main extends Application {
     
-    private final String version = "0.140";
+    private final String version = "0.150";
     private final Game game = new Game();
     private final Player player = new Player();
     private File playerData;
     private Monster[] monsterList;
     private Image[] cardImages, cardBanners;
     private boolean showRamStats = true, isBeginner = true;
+    private GameClient gameC;
             
-    public static void main(String[] args) {
+    public static void main(String[] args) 
+    {
         // Code execution goes here after running init() and start() methods
         launch(args);
     }
@@ -35,7 +43,7 @@ public class Main extends Application {
     public void init() throws IOException
     {
         System.out.println("[INFO] Starting Monster Battle Arena v" + version);
-        
+
         if (showRamStats)
         {
             // RAM usage task
@@ -45,7 +53,7 @@ public class Main extends Application {
 
                 @Override
                 public void run()
-                {
+                {    
                     long stopTime = System.nanoTime();
                     long delta_t = (stopTime - startTime)/1000000000;
                     System.gc();
@@ -70,6 +78,7 @@ public class Main extends Application {
         primaryStage.setHeight(1080);
         primaryStage.setResizable(false);
         primaryStage.setScene(splashScene);
+        primaryStage.setTitle("Monster Battle Arena v" + version);
         primaryStage.show();
                 
         // Make a new instance of the game class and call the initialization method
@@ -80,7 +89,7 @@ public class Main extends Application {
         cardImages = game.loadCardImages();
         cardBanners = game.loadCardBanners();
         playerData = game.getPlayerData();
-                
+        
         // Create an instance of the graphics generation class
         GenerateGraphics gameGraphics = new GenerateGraphics(player, monsterList, cardImages, cardBanners, primaryStage, playerData, isBeginner);
 
@@ -94,13 +103,17 @@ public class Main extends Application {
         }
         
         else
+        {
             primaryStage.setScene(mainMenu);
+            gameC = new GameClient(player);
+        }
                 
         
 //TODO: primaryStage.setFullScreen(true);
         primaryStage.setOnCloseRequest(e -> {
         //  e.consume();      <--- will be used to add confirm dialog on close
             Platform.exit();
+            gameC.client.stop();
             System.exit(0);
         });
         primaryStage.show();

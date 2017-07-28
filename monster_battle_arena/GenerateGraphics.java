@@ -68,7 +68,7 @@ public class GenerateGraphics {
     private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy;
     private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false, isBeginner;
     private Text playerGemCount;
-    private String gameVersion = "v0.140";
+    private String gameVersion = "v0.150";
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage, File playerData, boolean isBeginner)
     {
@@ -147,7 +147,7 @@ public class GenerateGraphics {
         vertBox.setPrefWidth(300);
         
         // Insets parameters (padding space in pixels): top, right, bottom, left
-        vertBox.setPadding(new Insets(200, 540, 100, 600));
+        vertBox.setPadding(new Insets(100, 540, 100, 600));
         
         Media mainMenuBg = new Media(videoPath);
         Media mainMenuAudio = new Media(audioPath);
@@ -178,20 +178,25 @@ public class GenerateGraphics {
         Text version = new Text(gameVersion);
         version.setFont(Font.font("Times", FontWeight.BOLD, 20));
         version.setFill(Color.WHITE);
-        version.relocate(1280, 300);
+        version.relocate(1280, 200);
         
         // Make buttons to place on the main menu
         // makeButton parameters: button text content, text color, button color, text size, button width
-        Button playBtn = makeButton("Play", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
+        Button sPlayBtn = makeButton("Singleplayer", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
+        Button mPlayBtn = makeButton("Multiplayer", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         Button editorBtn = makeButton("Deck Editor", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         Button shopBtn = makeButton("Shop", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         Button settingsBtn = makeButton("Settings", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         Button quitBtn = makeButton("Quit", "#00ffff", "#0d5cdb", 25, vertBox.getPrefWidth());
         
         // Sets handler for what to do on mouse enter and exit, also add drop shadow effect
-        playBtn.setOnMouseEntered(e -> playBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
-        playBtn.setOnMouseExited(e -> playBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
-        playBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        sPlayBtn.setOnMouseEntered(e -> sPlayBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        sPlayBtn.setOnMouseExited(e -> sPlayBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        sPlayBtn.setEffect(makeDropShadow(Color.AQUA, 40));
+        
+        mPlayBtn.setOnMouseEntered(e -> mPlayBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
+        mPlayBtn.setOnMouseExited(e -> mPlayBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
+        mPlayBtn.setEffect(makeDropShadow(Color.AQUA, 40));
         
         editorBtn.setOnMouseEntered(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #07347c;"));
         editorBtn.setOnMouseExited(e -> editorBtn.setStyle("-fx-text-fill: #00ffff; -fx-background-color: #0d5cbd;"));
@@ -207,7 +212,7 @@ public class GenerateGraphics {
         final Scene playMenuInit = createPlayMenu();
         playMenu = playMenuInit;
         
-        playBtn.setOnAction(e -> {
+        sPlayBtn.setOnAction(e -> {
             mainStage.setScene(playMenu);
             vidPlayer.stop();
         });
@@ -249,7 +254,7 @@ public class GenerateGraphics {
         startBtn.setOnMouseExited(e -> startBtn.setStyle("-fx-text-fill: #00ffff"));
         startBtn.setOnAction(e -> {
             vertBox.getChildren().remove(startBtn);
-            vertBox.getChildren().addAll(playBtn, editorBtn, shopBtn, settingsBtn, quitBtn);
+            vertBox.getChildren().addAll(sPlayBtn, mPlayBtn, editorBtn, shopBtn, settingsBtn, quitBtn);
         });
         startBtn.setBackground(Background.EMPTY);
 
@@ -276,7 +281,7 @@ public class GenerateGraphics {
         
         HBox cardContainer = new HBox(20);
         
-        VBox nodeContainer = new VBox(50);
+        VBox nodeContainer = new VBox(25);
         VBox firstPackContainer = new VBox(100);
 
         nodeContainer.relocate(470, 200);
@@ -320,8 +325,8 @@ public class GenerateGraphics {
             
             // BAD WORDS! AVERT YOUR EYES!
             String[] bannedNames = new String[]{"admin", "mod", "fuck", "shit", "dick", 
-                                                "develop", "owner", "hitle", "stalin", 
-                                                "trump", "nigg", "nlgg", "holocau", "cunt",
+                                                "develop", "owner", "hitle", "stalin", "hoe",
+                                                "trump", "nigg", "nlgg", "holocau", "cunt", "bitch",
                                                 "isis", "jesus", "hammed", "pussy", "jew", "racis", "kkk",
                                                 "prophet", "fag", "gay", "homo", "porn", "anal", "slave"};
             boolean isBannedName = false;
@@ -355,13 +360,16 @@ public class GenerateGraphics {
                 player.setName(playerName.getText());
                 nodeContainer.getChildren().clear();
                 
-                Text welcomeText = new Text("Welcome to Monster Battle Arena " + player.getName() + "!");
+                Text welcomeText = new Text("Welcome to Monster Battle Arena: ");
+                Text pNameText = new Text(player.getName());
                 Text welcome2 = new Text("Get started by opening your first card pack!");
                 Text flipTip = new Text("Click on each card to see what you get!");
                 welcomeText.setFont(Font.font("Arial", FontWeight.BOLD, 64));
+                pNameText.setFont(Font.font("Arial", FontWeight.BOLD, 64));
                 welcome2.setFont(Font.font("Arial", FontWeight.BOLD, 64));
                 flipTip.setFont(Font.font("Arial", FontWeight.BOLD, 64));
                 welcomeText.setFill(Color.WHITE);
+                pNameText.setFill(Color.WHITE);
                 welcome2.setFill(Color.WHITE);
                 flipTip.setFill(Color.WHITE);
                                 
@@ -371,7 +379,7 @@ public class GenerateGraphics {
                 
                 nodeContainer.setSpacing(100);
                 nodeContainer.relocate(300, 200);
-                nodeContainer.getChildren().addAll(welcomeText, welcome2, starterPack);
+                nodeContainer.getChildren().addAll(welcomeText, pNameText, welcome2, starterPack);
                 
                 ImageView[] cardsOpened = new ImageView[starterDeck.length];
 
@@ -384,7 +392,6 @@ public class GenerateGraphics {
                         
                         // Add the new monster to the player card pool
                         player.getCardPool().add(monsterList[starterDeck[index]]);
-                        
                         
                         // Update image graphic to show new monster
                         try 
@@ -445,6 +452,10 @@ public class GenerateGraphics {
                         vidPlayer.play();
                         audioPlayer.play();
                         mainStage.setScene(mainMenu);
+                        
+                        // If this is a player's first time playing, only make
+                        // server connection attempt AFTER they pass the tutorial
+                        GameClient gc = new GameClient(player);
                     });
                 }); 
             }
@@ -1119,7 +1130,7 @@ public class GenerateGraphics {
             pageNumber += 1;
             
             // NOTE: Hard-coded value will need to be updated for deck expansions
-            if (pageNumber == 5)
+            if (pageNumber == 8)
             {
                 pageForward.setText("");
                 pageForward.setDisable(true);

@@ -15,14 +15,14 @@ import javafx.scene.image.Image;
  */
 public class Game {
     
-    private Monster[] monsterList = new Monster[40];
+    private Monster[] monsterList = new Monster[64];
     private File playerData = new File("playerData.txt");
     private boolean isBeginner = false;
 
     public void initGame(Player player) throws IOException, FileNotFoundException
     {
         // Array will contain monster data extracted from the text file as strings
-        String[] monsterData = new String[40];
+        String[] monsterData = new String[64];
         
         // Input stream retrieves monsterData text file to be read from
         InputStream input = getClass().getResourceAsStream("monsterData.txt");
