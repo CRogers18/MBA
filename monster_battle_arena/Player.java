@@ -97,9 +97,7 @@ public class Player {
 
     public void sortCardPool(ArrayList <Monster> unsortedCardPool, Monster[] monsterList)
     {
-        // WARNING: array is HARD-CODED for size of 40, will need to be replaced
-        // with a VARIABLE array size when the total card pool goes beyond 40 cards
-        int[] cardCounts = new int[64];
+        int[] cardCounts = new int[monsterList.length];
         ArrayList <Monster> orderedPool = new ArrayList <>();
         
         for (Monster card : unsortedCardPool)

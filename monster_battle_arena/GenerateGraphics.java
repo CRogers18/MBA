@@ -36,6 +36,7 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -53,22 +54,22 @@ public class GenerateGraphics {
     // Class for quickly generating graphical interface elements
     Timer timer = new Timer();
     
-    private Group root, deckEditGroup, arenaGroup;
-    private MediaPlayer vidPlayer, audioPlayer;
+    private Group root, deckEditGroup, arenaGroup, mpSelectGroup;
+    private MediaPlayer vidPlayer, mainMenuAudioPlayer, mpMenuAudioPlayer;
     private final Image[] cardImages, cardBanners;
     private ImageView[] deckEditorCardView, playBtns;
     private final Stage mainStage;
-    private Scene mainMenu, shopMenu, deckEditorMenu, playMenu, arenaUI;
+    private Scene mainMenu, shopMenu, deckEditorMenu, playMenu, arenaUI, mpMenu;
     private VBox cardBannerBox;
 
     private final Player player;
-    private File playerData;
-    private Path playerDataPath;
+    private final File playerData;
+    private final Path playerDataPath;
     private final Monster[] monsterList;
-    private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy;
+    private int cardPacksOpened = 0, pageNumber = 1, selectedDeck = 1, clickedBy, deckBeingUsed = 0;
     private boolean isMoving = false, bannerIsLoaded = false, inText = false, playBtnisClicked = false, isBeginner;
     private Text playerGemCount;
-    private String gameVersion = "v0.150";
+    private final String gameVersion = "v0.150";
     
     public GenerateGraphics(Player player, Monster[] monsters, Image[] cardImages, Image[] cardBanners, Stage mainStage, File playerData, boolean isBeginner)
     {
@@ -135,7 +136,8 @@ public class GenerateGraphics {
     {
         // Paths to video and audio assets
         String videoPath = getClass().getResource("/VideoAssets/mainMenuBg.mp4").toURI().toString();
-        String audioPath = getClass().getResource("/AudioAssets/mainMenu_Winters Tale.mp3").toURI().toString();
+        String mainMenuAudioPath = getClass().getResource("/AudioAssets/mainMenu_Winters Tale.mp3").toURI().toString();
+        String mpMenuAudioPath = getClass().getResource("/AudioAssets/mpMenu_AngelofWar.mp3").toURI().toString();
         
         root = new Group();
         mainMenu = new Scene(root, 1920, 1080);
@@ -150,23 +152,30 @@ public class GenerateGraphics {
         vertBox.setPadding(new Insets(100, 540, 100, 600));
         
         Media mainMenuBg = new Media(videoPath);
-        Media mainMenuAudio = new Media(audioPath);
+        Media mainMenuAudio = new Media(mainMenuAudioPath);
+        Media mpMenuAudio = new Media(mpMenuAudioPath);
         
         // Media players for both audio and video
         vidPlayer = new MediaPlayer(mainMenuBg);
-        audioPlayer = new MediaPlayer(mainMenuAudio);
+        mainMenuAudioPlayer = new MediaPlayer(mainMenuAudio);
+        mpMenuAudioPlayer = new MediaPlayer(mpMenuAudio);
         
         /* Leak seems for now to be fixed, according to new RAM usage meter, 
            will still keep an eye on this section in the future */
         vidPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         vidPlayer.setStopTime(Duration.seconds(9));
+                
+        mainMenuAudioPlayer.setVolume(0.40);
+        mainMenuAudioPlayer.setStartTime(Duration.seconds(1));
+        mainMenuAudioPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        mainMenuAudioPlayer.setOnEndOfMedia(() -> mainMenuAudioPlayer.seek(Duration.seconds(0)));
         
-        audioPlayer.setVolume(0.40);
-        audioPlayer.setStartTime(Duration.seconds(1));
-        audioPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        audioPlayer.setOnEndOfMedia(() -> audioPlayer.seek(Duration.seconds(0)));
+        mpMenuAudioPlayer.setVolume(0.40);
+        mpMenuAudioPlayer.setStartTime(Duration.seconds(1));
+        mpMenuAudioPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        mpMenuAudioPlayer.setOnEndOfMedia(() -> mpMenuAudioPlayer.seek(Duration.seconds(0)));
         
-        MediaView audio = new MediaView(audioPlayer);
+        MediaView audio = new MediaView(mainMenuAudioPlayer);
         MediaView video = new MediaView(vidPlayer);
 
         // Create text for main game title
@@ -215,6 +224,16 @@ public class GenerateGraphics {
         sPlayBtn.setOnAction(e -> {
             mainStage.setScene(playMenu);
             vidPlayer.stop();
+        });
+        
+        final Scene mpMenuInit = createMpMenu();
+        mpMenu = mpMenuInit;
+        
+        mPlayBtn.setOnAction(e -> {
+            mainStage.setScene(mpMenu);
+            vidPlayer.stop();
+            mainMenuAudioPlayer.pause();
+            mpMenuAudioPlayer.play();
         });
         
         final Scene deckEditorMenuInit = createDeckEditorMenu();
@@ -266,7 +285,7 @@ public class GenerateGraphics {
         if (!isBeginner)
         {
             vidPlayer.play();
-            audioPlayer.play();
+            mainMenuAudioPlayer.play();
         }
         
         return mainMenu;
@@ -277,7 +296,7 @@ public class GenerateGraphics {
         Group bGroup = new Group();
         Scene bScene = new Scene(bGroup, 1920, 1080);
                 
-        ImageView bg = new ImageView(new Image("/ImageAssets/play_bg.png", 1920, 1080, false, false));
+        ImageView bg = new ImageView(new Image("/ImageAssets/play_bg.jpg", 1920, 1080, false, false));
         
         HBox cardContainer = new HBox(20);
         
@@ -450,7 +469,7 @@ public class GenerateGraphics {
                         }
 
                         vidPlayer.play();
-                        audioPlayer.play();
+                        mainMenuAudioPlayer.play();
                         mainStage.setScene(mainMenu);
                         
                         // If this is a player's first time playing, only make
@@ -472,7 +491,7 @@ public class GenerateGraphics {
         Group playMenuGroup = new Group();
         playMenu = new Scene(playMenuGroup, 1920, 1080);
         
-        Image play_bg = new Image("/ImageAssets/play_bg.png", 1920, 1080, false, false);
+        Image play_bg = new Image("/ImageAssets/play_bg.jpg", 1920, 1080, false, false);
         ImageView play_menu_bg = new ImageView(play_bg);
         
         Text playText = makeText("Play", "", 60);
@@ -933,7 +952,7 @@ public class GenerateGraphics {
             vidPlayer.play();
         });
         
-        Image shop_bg = new Image("/ImageAssets/shop_bg.png");
+        Image shop_bg = new Image("/ImageAssets/shop_bg.jpg");
         ImageView shopView = new ImageView(shop_bg);
 
         shopBox.getChildren().addAll(scpImage, ucpImage);
@@ -950,7 +969,7 @@ public class GenerateGraphics {
         Scene deckEditorScene = new Scene(deckEditGroup, 1920, 1080);
         
         // Using a different BG for the time being, might switch back
-        Image editor_bg = new Image("/ImageAssets/deckBuilderBG2.png");
+        Image editor_bg = new Image("/ImageAssets/deckBuilderBG2.jpg");
             
         /* Deck editor has 8 spots to place cards, so make 8 
            containers to place the card images in. */
@@ -1119,7 +1138,7 @@ public class GenerateGraphics {
             }
             
             // NOTE: Hard-coded value will need to be updated for deck expansions
-            if (pageNumber == 4 && pageForward.isDisabled())
+            if (pageNumber == 7 && pageForward.isDisabled())
                 pageForward.setDisable(false);
                 
             updateDeckEditorCards();
@@ -1409,13 +1428,116 @@ public class GenerateGraphics {
         playerHand.setPadding(new Insets(0, 300, 0, 200));
         
         // TODO: will need to change variably with respect to # of cards in hand
-        playerHand.relocate(250, 730);
+        playerHand.relocate(464, 876);
         
-        HBox botHand = new HBox(20);
+        HBox botHand = new HBox(10);
         botHand.setPadding(new Insets(5, 300, 0, 300));
-        botHand.relocate(300, 0);
+        botHand.relocate(300, -100);
         arenaGroup.getChildren().addAll(arenaBgView, playerField, botField, playerHand, botHand);
         
         return arenaUI;
+    }
+
+    private Scene createMpMenu()
+    {
+        mpSelectGroup = new Group();
+        Scene mp = new Scene(mpSelectGroup, 1920, 1080);
+        
+        MediaView mpAudio = new MediaView(mpMenuAudioPlayer);
+        
+        ImageView mp_bg = new ImageView(new Image("/ImageAssets/mp_bg_1.jpg"));
+        
+        VBox deckSelect = new VBox(20);
+        deckSelect.relocate(1450, 775);
+        deckSelect.setMaxHeight(10);
+        
+        for (int i = 0; i < 3; i++)
+        {
+            final int index = i;
+            Button btn = makeButton("Use Deck " + (i + 1), "#00ffff", "#0d5cdb", 20, 300);
+            btn.setId(Integer.toString(index));
+            btn.setOnAction(e -> {
+                deckSelect.getChildren().get(deckBeingUsed).setEffect(null);
+                btn.setEffect(makeDropShadow(Color.CYAN, 40));
+                deckBeingUsed = Integer.parseInt(btn.getId());
+            });
+            deckSelect.getChildren().add(btn);
+        }
+        // Auto-selects deck 1, when sending deckBeingUsed to the server, make sure
+        // to add 1 to the value to avoid confusion as decks start at 1 but group indices start at 0
+        deckSelect.getChildren().get(0).setEffect(makeDropShadow(Color.CYAN, 40));
+        
+        // TODO: Move server connection code to here instead of making it automatic
+        
+        // Get ping to report beforehand then post it here
+        String ping = "57ms";
+        
+        Text serverInfo = new Text("MBA Server 1\nPing: " + ping);
+        serverInfo.setFont(Font.font("Arial", FontWeight.NORMAL, 24));
+        serverInfo.setFill(Color.WHITE);
+        serverInfo.setVisible(false);
+        
+        Rectangle infoBox = new Rectangle();
+        infoBox.setFill(Color.BLACK);
+        infoBox.setOpacity(0.65);
+        infoBox.setWidth(200);
+        infoBox.setHeight(75);
+        infoBox.setVisible(false);
+        
+        Ellipse[] portals = new Ellipse[3];
+        for (int i = 0; i < 3; i++)
+        {
+            Ellipse portal = null;
+            
+            if (i == 0)
+            {
+                portal = new Ellipse(815, 400, 229, 350);
+                portal.setRotate(-10.0);
+            }
+            
+            if (i == 1)
+            {
+                portal = new Ellipse(1536, 338, 52, 105);
+                portal.setRotate(-3.0);
+            }
+            
+            if (i == 2)
+                portal = new Ellipse(297, 254, 24, 51);
+            
+            portal.setFill(Color.TRANSPARENT);
+            // no worries, portal will be initialized before the pointer is 
+            // de-referenced at this line
+            portal.setOnMouseEntered(e -> {
+                serverInfo.setText("MBA Server 1\nPing: " + ping);
+                infoBox.setVisible(true);
+                serverInfo.setVisible(true);
+            });
+            
+            portal.setOnMouseMoved(e -> {
+                double mouseX = e.getSceneX(), mouseY = e.getSceneY();
+                infoBox.relocate(mouseX + 25, mouseY - 75);
+                serverInfo.relocate(infoBox.getLayoutX() + 10, infoBox.getLayoutY() + 10);
+            });
+            
+            portal.setOnMouseExited(e -> {
+                infoBox.setVisible(false);
+                serverInfo.setVisible(false);
+            });
+            
+            portal.setOnMouseClicked(e -> {
+                vidPlayer.play();
+                mpMenuAudioPlayer.stop();
+                mainMenuAudioPlayer.play();
+                mainStage.setScene(mainMenu);
+            });
+            
+            portals[i] = portal;
+        }
+        
+        mpSelectGroup.getChildren().addAll(mp_bg, deckSelect);
+        mpSelectGroup.getChildren().addAll(portals);
+        mpSelectGroup.getChildren().addAll(infoBox, serverInfo, mpAudio);
+        
+        return mp;
     }
 }

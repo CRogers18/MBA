@@ -15,14 +15,15 @@ import javafx.scene.image.Image;
  */
 public class Game {
     
-    private Monster[] monsterList = new Monster[64];
-    private File playerData = new File("playerData.txt");
+    // monsterList size will need to be updated for future deck expansions
+    private final Monster[] monsterList = new Monster[64];
+    private final File playerData = new File("playerData.txt");
     private boolean isBeginner = false;
 
     public void initGame(Player player) throws IOException, FileNotFoundException
     {
         // Array will contain monster data extracted from the text file as strings
-        String[] monsterData = new String[64];
+        String[] monsterData = new String[monsterList.length];
         
         // Input stream retrieves monsterData text file to be read from
         InputStream input = getClass().getResourceAsStream("monsterData.txt");
@@ -117,6 +118,7 @@ public class Game {
                     
                     case "name:":
                     {
+                        // doesn't account for spaces in name (TODO: ban spaces in names)
                         player.setName(data[1]);
                         break;
                     }
@@ -126,10 +128,8 @@ public class Game {
                         if (data[1].equals("1"))
                         {
                             isBeginner = true;
-                            System.out.println("[INFO] New player, load beginner scene instead");
+                            System.out.println("[INFO] New player, will load beginner scene");
                         }
-                        else
-                            System.out.println("[INFO] Returning player");
                         
                         break;
                     }
@@ -170,6 +170,8 @@ public class Game {
         
         // This line cuts 10-12 MB of active memory from the JVM heap by loading
         // this missing texture image only one time
+        
+        // Original size is 300 x 400
         Image missingTexture = new Image("/ImageAssets/Cards/missingTexture.png", 260, 355, false, false);
         
         for (int i = 0; i < monsterList.length; i++)
@@ -198,7 +200,7 @@ public class Game {
         {
             try
             {
-                cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".png", 460, 70, false, false);
+                cardBanners[i] = new Image("/ImageAssets/Cards/cardBanner" + i + ".jpg", 460, 70, false, false);
             } catch (IllegalArgumentException err)
             {
                 cardBanners[i] = defaultBanner;
@@ -212,11 +214,6 @@ public class Game {
     public Monster[] getMonsterList()
     {
         return monsterList;
-    }
-
-    public void setMonsterList(Monster[] monsterList)
-    {
-        this.monsterList = monsterList;
     }
     
     public File getPlayerData()

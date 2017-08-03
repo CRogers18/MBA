@@ -77,7 +77,7 @@ public class GameClient {
             System.out.println("[ERROR] Failed to connect to MBA server!");
         }
         
-        /* Tested sending a queue request, 2 second delay, then exit request
+        // Tested sending a queue request, 2 second delay, then exit request
         client.sendTCP(search);
         
         try {
@@ -88,7 +88,7 @@ public class GameClient {
         } catch (InterruptedException ex) {
             Logger.getLogger(GameClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-        */
+        
         
     }
 

@@ -23,7 +23,7 @@ class Arena {
     
     private Player realPlayer, bot;
     private ArrayList <Monster> playerShuffle, botShuffle, playerHand, botHand, playerField, botField;
-    private Monster[] monsterData;
+    private final Monster[] monsterData;
     private Stack <Monster> playerPull = new Stack<>();
     private Stack <Monster> botPull = new Stack<>();
     
@@ -372,53 +372,14 @@ class Arena {
             try
             {
                 // May throw IllegalArgumentException for duplicate children added to HBox
-                ImageView card = new ImageView(new Image("/ImageAssets/Cards/card_" + toAdd.getMonsterID() + ".png", 200, 300, false, false));
+                ImageView card = new ImageView(new Image("/ImageAssets/Cards/card_" + toAdd.getMonsterID() + ".png", 150, 200, false, false));
                 
                 card.setEffect(cardShadow);
                 
                 card.setOnMouseClicked(e -> {
 
                     card.setRotate(0);
-                //  playerFieldUI.getChildren().add(card);
-                    
-                    // Invert variable for whether card is moving each time it is clicked
-                    isMoving = !isMoving;
-                    
-                    // A solution somewhat like this might work, when clicked, check if in
-                    // a valid field otherwise don't allow the card to be put down
-                    if (isMoving)
-                    {
-                        card.setDisable(true);
-                        System.out.println("Checking if in valid field");
-                        card.setDisable(false);
-                    }
-
-                    // Event handler for mouse movement
-                    card.setOnMouseMoved(eve -> {
-
-                        // If the card should be moving, get mouse coords and put the card there
-                        if (isMoving)
-                        {
-                            double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
-                            card.relocate(mouseX - 200/2, mouseY - 300/2);
-                        }
-                        
-                    });
-
-                    // Handles rapid mouse movement that can sometimes exit the bounds
-                    // of the cardView object before setOnMouseMove event can be fired, 
-                    // resulting in the card no longer being moved to the mouse coords 
-                    card.setOnMouseExited(even -> {
-
-                        if (isMoving)
-                        {
-                            double mouseX = even.getSceneX(), mouseY = even.getSceneY();
-                            card.relocate(mouseX - 200/2, mouseY - 300/2);
-                        }
-                    });
-                    
-                    // Lots of errors triggered by this, but closer to the desired
-                    // effect of being able to pick cards up (duplicate child errors)
+                    playerFieldUI.getChildren().add(card);
                     playerHandUI.getChildren().remove(card);
                     arenaUI.getChildren().add(card);
                     updateCardPos();
@@ -542,7 +503,6 @@ class Arena {
             }
 
             // Replace old element with rotated one
-            
             playerHandUI.getChildren().set(i, cardToRotate);
         }
     }
@@ -550,11 +510,47 @@ class Arena {
         /* Commented out at the moment since it was just for testing purposes
         // Set an event handler for mouse clicking on the card
         cardView.setOnMouseClicked(ev -> {
+            
+            TODO: Get this working correctly
+            // Invert variable for whether card is moving each time it is clicked
+            isMoving = !isMoving;
 
+            // A solution somewhat like this might work, when clicked, check if in
+            // a valid field otherwise don't allow the card to be put down
+            if (isMoving)
+            {
+                card.setDisable(true);
+                System.out.println("Checking if in valid field");
+                card.setDisable(false);
+            }
+
+            // Event handler for mouse movement
+            card.setOnMouseMoved(eve -> {
+
+                // If the card should be moving, get mouse coords and put the card there
+                if (isMoving)
+                {
+                    double mouseX = eve.getSceneX(), mouseY = eve.getSceneY();
+                    card.relocate(mouseX - 200/2, mouseY - 300/2);
+                }
+
+            });
+
+            // Handles rapid mouse movement that can sometimes exit the bounds
+            // of the cardView object before setOnMouseMove event can be fired, 
+            // resulting in the card no longer being moved to the mouse coords 
+            card.setOnMouseExited(even -> {
+
+                if (isMoving)
+                {
+                    double mouseX = even.getSceneX(), mouseY = even.getSceneY();
+                    card.relocate(mouseX - 200/2, mouseY - 300/2);
+                }
+            });
+
+            // Lots of errors triggered by this, but closer to the desired
+            // effect of being able to pick cards up (duplicate child errors)
             
         });
         */
-    
-    
-    
 }

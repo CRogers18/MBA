@@ -1,8 +1,5 @@
 package monster_battle_arena;
 
-import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -15,10 +12,9 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import monster_battle_arena.Network.FindGame;
-import monster_battle_arena.Network.QueueResponse;
-import monster_battle_arena.Network.RegisterUser;
 
 /*
  * @author Coleman Rogers
@@ -31,7 +27,8 @@ public class Main extends Application {
     private File playerData;
     private Monster[] monsterList;
     private Image[] cardImages, cardBanners;
-    private boolean showRamStats = true, isBeginner = true;
+    private final boolean showRamStats = true;
+    private boolean isBeginner = true;
     private GameClient gameC;
             
     public static void main(String[] args) 
@@ -40,7 +37,8 @@ public class Main extends Application {
         launch(args);
     }
     
-    public void init() throws IOException
+    @Override
+    public void init()
     {
         System.out.println("[INFO] Starting Monster Battle Arena v" + version);
 
@@ -63,7 +61,7 @@ public class Main extends Application {
                 }
 
             }, 0, 1000);
-        }        
+        }
     }
     
     @Override
@@ -72,19 +70,27 @@ public class Main extends Application {
         // Pre-load splash screen
         Group splashGroup = new Group();
         Scene splashScene = new Scene(splashGroup, 1920, 1080);
-        ImageView splashImage = new ImageView(new Image("/ImageAssets/loadScreen.png", 1920, 1080, false, false));
+        ImageView splashImage = new ImageView(new Image("/ImageAssets/loadScreen.jpg", 1920, 1080, false, false));
         splashGroup.getChildren().add(splashImage);
         primaryStage.setWidth(1920);
         primaryStage.setHeight(1080);
         primaryStage.setResizable(false);
         primaryStage.setScene(splashScene);
         primaryStage.setTitle("Monster Battle Arena v" + version);
+        
+        // Key listener for possible console drop-down option
+        primaryStage.addEventFilter(KeyEvent.KEY_RELEASED, (KeyEvent e) ->{
+            if (KeyCode.F1 == e.getCode())
+            {
+                System.out.println("Open console");
+            }
+        });
+        
         primaryStage.show();
-                
+        
         // Make a new instance of the game class and call the initialization method
         game.initGame(player);
         isBeginner = game.isBeginner();
-        
         monsterList = game.getMonsterList();
         cardImages = game.loadCardImages();
         cardBanners = game.loadCardBanners();
@@ -116,6 +122,7 @@ public class Main extends Application {
             gameC.client.stop();
             System.exit(0);
         });
+        
         primaryStage.show();
     }
     
